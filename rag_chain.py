@@ -1,5 +1,5 @@
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import Qdrant
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
@@ -47,7 +47,9 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap):
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     splits = text_splitter.split_documents(docs)
-    vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
+    api_key = 'QsuDAMdZ4VmCfJ5bIlfIu3XOiowi0YCwnlhmsLy93nUQTb1URiW-0A'
+    url= 'https://cf63628d-3ce6-4c3d-a4d5-be859093c995.us-east4-0.gcp.cloud.qdrant.io:6333'
+    vectorstore = Qdrant.from_documents(documents=splits, embedding=embeddings,url=url,api_key=api_key,collection_name='superkalam')
     return vectorstore
 
 def process_user_input(user_query, vectorstore):

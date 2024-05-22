@@ -9,7 +9,7 @@ from langchain_core.prompts import PromptTemplate
 import tempfile
 import shutil
 
-from keys import INFERENCE_API_KEY
+INFERENCE_API_KEY='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'
 from prompt import TEMPLATE
 
 def load_pdf_text(uploaded_file):
@@ -39,19 +39,6 @@ def determine_optimal_chunk_size(doc_length):
         chunk_overlap = 500
         return chunk_size, chunk_overlap
     
-# def determine_optimal_chunk_size(doc_length, min_chunk=500, max_chunk=2000, min_overlap=100, max_overlap=500): #This function is better but uses more computational power
-#     min_length = 0
-#     max_length = 20000  
-
-#     if doc_length > max_length:
-#         scale_factor = 1
-#     else:
-#         scale_factor = (doc_length - min_length) / (max_length - min_length)
-
-#     chunk_size = int(min_chunk + (max_chunk - min_chunk) * scale_factor)
-#     overlap = int(min_overlap + (max_overlap - min_overlap) * scale_factor)
-
-#     return chunk_size, overlap
 
 def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap):
     embeddings = HuggingFaceInferenceAPIEmbeddings(

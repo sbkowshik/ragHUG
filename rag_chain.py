@@ -10,8 +10,16 @@ import tempfile
 import shutil
 
 INFERENCE_API_KEY='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'
-from prompt import TEMPLATE
 
+TEMPLATE = """Use the following pieces of context to answer the question at the end.
+If you don't know the answer, just say that you don't know, don't try to make up an answer.
+Use three sentences maximum and keep the answer as concise as possible.
+
+{context}
+
+Question: {question}
+
+Answer:"""
 def load_pdf_text(uploaded_file):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
         shutil.copyfileobj(uploaded_file, temp_file)

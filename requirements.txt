@@ -2,3 +2,14 @@ langchain
 streamlit
 chromadb
 pypdf
+langchain 
+langchain_community
+openai 
+tiktoken 
+langchain_experimental 
+langchainhub
+streamlit
+python-dotenv
+scikit-learn
+huggingface_hub
+transformers

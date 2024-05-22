@@ -27,14 +27,11 @@ def create_chat_bubble(text):
     return chat_bubble_html
 
 def main():
-    st.set_page_config("ConvoPDF")
-    st.title("ConvoPDF 📚🤖")
-
+    st.set_page_config("Social Studies RAG Assistant")
+    st.title("Social Studies RAG Assistant")
     if 'vectorstore' not in st.session_state:
         st.session_state['vectorstore'] = None
-
     with st.sidebar:
-        st.title("Get started with ConvoPDF:")
         pdf_doc = st.file_uploader("Upload your PDF", accept_multiple_files=False)
         if st.button("Process PDF"):
             with st.spinner("Processing... This may take a while based on the size of the PDF"):

@@ -1,31 +1,6 @@
 import streamlit as st
 from rag_chain import load_pdf_text, determine_optimal_chunk_size, chunk_and_store_in_vector_store, process_user_input
 
-def create_chat_bubble(text):
-    chat_bubble_html = f"""
-    <style>
-    .chat-bubble {{
-        max-width: 100%;
-        margin: 10px;
-        padding: 10px;
-        background-color: #262730;
-        border-radius: 16px;
-        border: 1px solid #36454F;
-    }}
-    .chat-container {{
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-    }}
-    </style>
-    <div class="chat-container">
-        <div class="chat-bubble">
-            {text}
-        </div>
-    </div>
-    """
-    return chat_bubble_html
-
 def main():
     st.set_page_config("Social Studies RAG Assistant")
     st.title("Social Studies RAG Assistant")
@@ -48,7 +23,7 @@ def main():
     usq=user_query + 'You must tell me the page numbers of the relevant information you got from the textbook'
     if user_query and st.session_state['vectorstore']:
         llm_answer = process_user_input(user_query, st.session_state['vectorstore'])
-        st.markdown(create_chat_bubble(llm_answer), unsafe_allow_html=True)
+        st.markdown(llm_answer)
 
     elif user_query:
         st.warning("Upload PDF")

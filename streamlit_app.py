@@ -33,7 +33,7 @@ def main():
         st.session_state['vectorstore'] = None
     with st.sidebar:
         st.title("Kowshik S B")
-        pdf_doc = st.file_uploader(accept_multiple_files=False)
+        pdf_doc = st.file_uploader(" ",accept_multiple_files=False)
         if st.button("Process PDF"):
             with st.spinner("Processing... This may take a while based on the size of the PDF"):
                 if pdf_doc is not None:

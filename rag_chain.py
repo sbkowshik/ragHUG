@@ -1,3 +1,5 @@
+import tempfile
+import shutil
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Qdrant
 from langchain_core.output_parsers import StrOutputParser
@@ -6,14 +8,12 @@ from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_community.llms import HuggingFaceEndpoint
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import PromptTemplate
-import tempfile
-import shutil
 
 INFERENCE_API_KEY = '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'
 
-TEMPLATE = """ You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
-Use the following pieces of context to answer the question at the end. Get the PageNo information and cite it right after the information telling the user from which page the text is from.
-If you don't know the answer, just say that you don't know, don't try to make up an answer.
+TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
+Use the following pieces of context to answer the question at the end. Cite the PageNo information right after the relevant information.
+If you don't know the answer, just say that you don't know; don't try to make up an answer.
 Use three sentences maximum and keep the answer as concise as possible.
 
 {context}
@@ -35,10 +35,10 @@ def load_pdf_text(uploaded_file):
     return docs, doc_length
 
 def determine_optimal_chunk_size(doc_length):
-    if doc_length < 5000:
+    if (doc_length < 5000):
         chunk_size = 500
         chunk_overlap = 100
-    elif doc_length < 20000:
+    elif (doc_length < 20000):
         chunk_size = 1000
         chunk_overlap = 250
     else:
@@ -94,7 +94,12 @@ def process_user_input(user_query, vectorstore):
     return final_output
 
 def format_docs(docs):
-    return "\n\n".join(f"{doc.page_content} PageNo:{doc.metadata['page']}:" for doc in docs)
+    formatted_docs = []
+    for doc in docs:
+        content = doc.page_content
+        page = doc.metadata.get('page')
+        formatted_docs.append(f"{content} PageNo:{page}")
+    return "\n\n".join(formatted_docs)
 
 def substring_after(s, delim):
     return s.partition(delim)[2]

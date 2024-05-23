@@ -44,7 +44,7 @@ def determine_optimal_chunk_size(doc_length):
     else:
         chunk_size = 2000
         chunk_overlap = 500
-    return chunk_size, chunk_overlap , doc_length
+    return chunk_size, chunk_overlap
 
 def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap,doc_length):
     embeddings = HuggingFaceInferenceAPIEmbeddings(

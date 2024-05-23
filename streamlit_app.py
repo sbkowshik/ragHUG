@@ -39,7 +39,7 @@ def main():
                 if pdf_doc is not None:
                     docs, doc_length = load_pdf_text(pdf_doc)
                     chunk_size, chunk_overlap = determine_optimal_chunk_size(doc_length)
-                    st.session_state['vectorstore'] = chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap)
+                    st.session_state['vectorstore'] = chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap,doc_length)
                     st.success("PDF Processed")
                 else:
                     st.error("Upload PDF")

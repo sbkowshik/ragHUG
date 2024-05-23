@@ -23,12 +23,13 @@ def main():
                     st.error("Upload PDF")
 
     user_query = st.chat_input("Ask question")
-    usq=user_query + 'You must tell me the page numbers of the relevant information you got from the textbook'
+    #usq=str(user_query) + "You must tell me the page numbers of the relevant information you got from the textbook"
     if user_query and st.session_state['vectorstore']:
+        print(user_query)
         with st.chat_message("user",avatar="😺"):
             st.markdown(user_query)
         with st.chat_message("assistant",avatar="🦖"):
-            llm_answer = process_user_input(usq, st.session_state['vectorstore'])
+            llm_answer = process_user_input(user_query, st.session_state['vectorstore'])
             st.markdown(llm_answer)
 
     elif user_query:

@@ -9,7 +9,7 @@ from langchain_core.prompts import PromptTemplate
 import tempfile
 import shutil
 
-INFERENCE_API_KEY='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'
+INFERENCE_API_KEY = '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'
 
 TEMPLATE = """ You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
 Use the following pieces of context to answer the question at the end.
@@ -21,6 +21,7 @@ Use three sentences maximum and keep the answer as concise as possible.
 Question: {question}
 
 Answer:"""
+
 def load_pdf_text(uploaded_file):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
         shutil.copyfileobj(uploaded_file, temp_file)
@@ -29,24 +30,21 @@ def load_pdf_text(uploaded_file):
     loader = PyPDFLoader(temp_file_path)
     docs = loader.load()
     total_text = "\n".join(doc.page_content for doc in docs)
-    doc_length = len(total_text)  
+    doc_length = len(total_text)
 
     return docs, doc_length
 
 def determine_optimal_chunk_size(doc_length):
-    if doc_length < 5000:  
+    if doc_length < 5000:
         chunk_size = 500
         chunk_overlap = 100
-        return chunk_size, chunk_overlap
-    elif doc_length < 20000:  
+    elif doc_length < 20000:
         chunk_size = 1000
         chunk_overlap = 250
-        return chunk_size, chunk_overlap
     else:
         chunk_size = 2000
         chunk_overlap = 500
-        return chunk_size, chunk_overlap
-    
+    return chunk_size, chunk_overlap
 
 def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap):
     embeddings = HuggingFaceInferenceAPIEmbeddings(
@@ -55,9 +53,10 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap):
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     splits = text_splitter.split_documents(docs)
+
     api_key = 'QsuDAMdZ4VmCfJ5bIlfIu3XOiowi0YCwnlhmsLy93nUQTb1URiW-0A'
-    url= 'https://cf63628d-3ce6-4c3d-a4d5-be859093c995.us-east4-0.gcp.cloud.qdrant.io:6333'
-    vectorstore = Qdrant.from_documents(documents=splits, embedding=embeddings,url=url,api_key=api_key,collection_name=f'{chunk_size}')
+    url = 'https://cf63628d-3ce6-4c3d-a4d5-be859093c995.us-east4-0.gcp.cloud.qdrant.io:6333'
+    vectorstore = Qdrant.from_documents(documents=splits, embedding=embeddings, url=url, api_key=api_key, collection_name=f'{chunk_size}')
     return vectorstore
 
 def process_user_input(user_query, vectorstore):
@@ -78,7 +77,7 @@ def process_user_input(user_query, vectorstore):
     custom_rag_prompt = PromptTemplate.from_template(template)
 
     rag_chain_from_docs = (
-        RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
+        RunnablePassthrough.assign(context=(lambda x: format_docs_with_metadata(x["context"])))
         | custom_rag_prompt
         | llm
         | StrOutputParser()
@@ -95,8 +94,7 @@ def process_user_input(user_query, vectorstore):
     return final_output
 
 def format_docs(docs):
-    return "\n\n".join(doc.page_content for doc in docs)
+    return "\n\n".join(f"{doc.page_content} [{doc.metadata['page']}]:" for doc in docs)
 
 def substring_after(s, delim):
     return s.partition(delim)[2]
-

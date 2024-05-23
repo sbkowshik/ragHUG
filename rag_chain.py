@@ -12,7 +12,7 @@ from langchain_core.prompts import PromptTemplate
 INFERENCE_API_KEY = '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'
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
-Use the following pieces of context to answer the question at the end. Cite the PageNo information right after the relevant information.
+Use the following pieces of context to answer the question at the end.
 If you don't know the answer, just say that you don't know; don't try to make up an answer.
 Use three sentences maximum and keep the answer as concise as possible.
 
@@ -89,7 +89,12 @@ def process_user_input(user_query, vectorstore):
 
     llm_response = rag_chain_with_source.invoke(user_query)
     print("\nLLM Response: \n", llm_response)
-    final_output = llm_response["answer"].strip()
+    relevant_docs = llm_response['source_documents']
+    pagestr=''
+    for doc in enumerate(relevant_docs):
+        x={doc.metadata['page']}+1
+        pagestr+=f'[{x}]'
+    final_output = llm_response["answer"].strip() + pagestr
     print("\nTrimmed LLM Answer: \n", final_output)
     return final_output
 

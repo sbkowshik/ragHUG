@@ -96,7 +96,7 @@ def format_docs(docs):
     for doc in docs:
         content = doc.page_content
         page = doc.metadata.get('page')
-        formatted_docs.append(f"{content} PageNo:{page}")
+        formatted_docs.append(f"{content} PageNo:{page+1}")
     return "\n\n".join(formatted_docs)
 
 def substring_after(s, delim):

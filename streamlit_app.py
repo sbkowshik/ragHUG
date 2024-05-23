@@ -32,7 +32,8 @@ def main():
     if 'vectorstore' not in st.session_state:
         st.session_state['vectorstore'] = None
     with st.sidebar:
-        pdf_doc = st.file_uploader("Upload your PDF", accept_multiple_files=False)
+        st.title("Kowshik S B")
+        pdf_doc = st.file_uploader(accept_multiple_files=False)
         if st.button("Process PDF"):
             with st.spinner("Processing... This may take a while based on the size of the PDF"):
                 if pdf_doc is not None:
@@ -41,16 +42,16 @@ def main():
                     st.session_state['vectorstore'] = chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap)
                     st.success("PDF Processed")
                 else:
-                    st.error("No PDF file uploaded. Please upload a PDF file.")
+                    st.error("Upload PDF")
 
-    user_query = st.text_input("What question would you like to ask your PDF?")
+    user_query = st.text_input("Ask question")
 
     if user_query and st.session_state['vectorstore']:
         llm_answer = process_user_input(user_query, st.session_state['vectorstore'])
         st.markdown(create_chat_bubble(llm_answer), unsafe_allow_html=True)
 
     elif user_query:
-        st.warning("Please upload a PDF and process it before asking a question")
+        st.warning("Upload PDF")
 
 if __name__ == "__main__":
     main()

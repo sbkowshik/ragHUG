@@ -77,7 +77,7 @@ def process_user_input(user_query, vectorstore):
     custom_rag_prompt = PromptTemplate.from_template(template)
 
     rag_chain_from_docs = (
-        RunnablePassthrough.assign(context=(lambda x: format_docs_with_metadata(x["context"])))
+        RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
         | custom_rag_prompt
         | llm
         | StrOutputParser()

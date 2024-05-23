@@ -9,8 +9,8 @@ from langchain_community.llms import HuggingFaceEndpoint
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import PromptTemplate
 
-INFERENCE_API_KEY = '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'
-
+#INFERENCE_API_KEY = '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'
+INFERENCE_API_KEY = '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'
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
 Use the following pieces of context to answer the question at the end. Mention the page number of information at the end.
 If you don't know the answer, just say that you don't know; don't try to make up an answer.

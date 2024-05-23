@@ -11,11 +11,11 @@ def main():
         st.session_state['vectorstore'] = None
     with st.sidebar:
         st.title("Kowshik S B")
-        st.session_state.source_docs = st.file_uploader(" ",accept_multiple_files=True)
+        source_docs = st.file_uploader(" ",accept_multiple_files=True)
         if st.button("Submit"):
             with st.spinner(" "):
-                if st.session.state.source_docs is not None:
-                    for source_doc in st.session_state.source_docs:
+                if source_docs is not None:
+                    for source_doc in source_docs:
                         docs, doc_length = load_pdf_text(source_doc)
                         chunk_size, chunk_overlap = determine_optimal_chunk_size(doc_length)
                         st.session_state['vectorstore'] = chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap)

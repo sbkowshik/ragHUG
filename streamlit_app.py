@@ -1,5 +1,8 @@
 import streamlit as st
 from rag_chain import load_pdf_text, determine_optimal_chunk_size, chunk_and_store_in_vector_store, process_user_input
+from langchain_community.callbacks.streamlit import (
+    StreamlitCallbackHandler,
+)
 
 def main():
     st.set_page_config("Social Studies RAG Assistant")
@@ -19,11 +22,14 @@ def main():
                 else:
                     st.error("Upload PDF")
 
-    user_query = st.text_input("Ask question")
+    user_query = st.chat_input("Ask question")
     usq=user_query + 'You must tell me the page numbers of the relevant information you got from the textbook'
     if user_query and st.session_state['vectorstore']:
-        llm_answer = process_user_input(user_query, st.session_state['vectorstore'])
-        st.markdown(llm_answer)
+        with st.chat_message("user",avatar="😺"):
+            st.markdown(user_query)
+        with st.chat_message("assistant",avatar="🦖"):
+            llm_answer = process_user_input(usq, st.session_state['vectorstore'])
+            st.markdown(llm_answer)
 
     elif user_query:
         st.warning("Upload PDF")

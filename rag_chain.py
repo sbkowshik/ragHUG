@@ -12,7 +12,7 @@ from langchain_core.prompts import PromptTemplate
 INFERENCE_API_KEY = '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'
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
-Use the following pieces of context to answer the question at the end. YOU MUST MENTION THE PAGE NUMBERS OF INFORMATION FROM THE METADATA AT THE END OF YOUR ANSWER.
+Use the following pieces of context to answer the question at the end. YOU MUST MENTION THE NAME OF THE FILE ALONG WITH PAGE NUMBERS OF INFORMATION FROM THE METADATA AT THE END OF YOUR ANSWER.
 If you don't know the answer, just say that you don't know; don't try to make up an answer.
 Use three sentences maximum and keep the answer as concise as possible.
 
@@ -29,6 +29,8 @@ def load_pdf_text(uploaded_file):
 
     loader = PyPDFLoader(temp_file_path)
     docs = loader.load()
+    for doc in docs:
+        doc.metadata['filename'] = uploaded_file.name
     total_text = "\n".join(doc.page_content for doc in docs)
     doc_length = len(total_text)
 
@@ -46,7 +48,7 @@ def determine_optimal_chunk_size(doc_length):
         chunk_overlap = 500
     return chunk_size, chunk_overlap
 
-def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap,doc_length):
+def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap):
     embeddings = HuggingFaceInferenceAPIEmbeddings(
         api_key=INFERENCE_API_KEY, model_name="sentence-transformers/all-MiniLM-l6-v2"
     )
@@ -56,7 +58,7 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap,doc_length):
 
     api_key = 'QsuDAMdZ4VmCfJ5bIlfIu3XOiowi0YCwnlhmsLy93nUQTb1URiW-0A'
     url = 'https://cf63628d-3ce6-4c3d-a4d5-be859093c995.us-east4-0.gcp.cloud.qdrant.io:6333'
-    vectorstore = Qdrant.from_documents(documents=splits, embedding=embeddings, url=url, api_key=api_key, collection_name=f'{doc_length}')
+    vectorstore = Qdrant.from_documents(documents=splits, embedding=embeddings, url=url, api_key=api_key, collection_name=f'test1234')
     return vectorstore
 
 def process_user_input(user_query, vectorstore):
@@ -94,6 +96,7 @@ def format_docs(docs):
     for doc in docs:
         content = doc.page_content
         page = doc.metadata.get('page')+1
+        page = doc.metadata.get('source')
         formatted_docs.append(f"{content} PageNo:{page}")
     return "\n\n".join(formatted_docs)
 

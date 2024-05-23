@@ -34,8 +34,8 @@ def main():
     with st.sidebar:
         st.title("Kowshik S B")
         pdf_doc = st.file_uploader(" ",accept_multiple_files=False)
-        if st.button("Process PDF"):
-            with st.spinner("Processing... This may take a while based on the size of the PDF"):
+        if st.button("Submit"):
+            with st.spinner(" "):
                 if pdf_doc is not None:
                     docs, doc_length = load_pdf_text(pdf_doc)
                     chunk_size, chunk_overlap = determine_optimal_chunk_size(doc_length)

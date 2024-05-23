@@ -12,7 +12,7 @@ import shutil
 INFERENCE_API_KEY = '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'
 
 TEMPLATE = """ You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
-Use the following pieces of context to answer the question at the end.
+Use the following pieces of context to answer the question at the end. Get the PageNo information and cite it right after the information telling the user from which page the text is from.
 If you don't know the answer, just say that you don't know, don't try to make up an answer.
 Use three sentences maximum and keep the answer as concise as possible.
 
@@ -94,7 +94,7 @@ def process_user_input(user_query, vectorstore):
     return final_output
 
 def format_docs(docs):
-    return "\n\n".join(f"{doc.page_content} [{doc.metadata['page']}]:" for doc in docs)
+    return "\n\n".join(f"{doc.page_content} PageNo:{doc.metadata['page']}:" for doc in docs)
 
 def substring_after(s, delim):
     return s.partition(delim)[2]

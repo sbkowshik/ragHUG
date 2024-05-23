@@ -1,6 +1,5 @@
 import tempfile
 import shutil
-import os
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Qdrant
 from langchain_core.output_parsers import StrOutputParser
@@ -13,7 +12,7 @@ from langchain_core.prompts import PromptTemplate
 INFERENCE_API_KEY = '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'
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
-Use the following pieces of context to answer the question at the end.
+Use the following pieces of context to answer the question at the end. Mention the page number of information at the end.
 If you don't know the answer, just say that you don't know; don't try to make up an answer.
 Use three sentences maximum and keep the answer as concise as possible.
 
@@ -28,21 +27,18 @@ def load_pdf_text(uploaded_file):
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
 
-    try:
-        loader = PyPDFLoader(temp_file_path)
-        docs = loader.load()
-        total_text = "\n".join(doc.page_content for doc in docs)
-        doc_length = len(total_text)
-    finally:
-        os.remove(temp_file_path)
+    loader = PyPDFLoader(temp_file_path)
+    docs = loader.load()
+    total_text = "\n".join(doc.page_content for doc in docs)
+    doc_length = len(total_text)
 
     return docs, doc_length
 
 def determine_optimal_chunk_size(doc_length):
-    if doc_length < 5000:
+    if (doc_length < 5000):
         chunk_size = 500
         chunk_overlap = 100
-    elif doc_length < 20000:
+    elif (doc_length < 20000):
         chunk_size = 1000
         chunk_overlap = 250
     else:
@@ -60,13 +56,7 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap):
 
     api_key = 'QsuDAMdZ4VmCfJ5bIlfIu3XOiowi0YCwnlhmsLy93nUQTb1URiW-0A'
     url = 'https://cf63628d-3ce6-4c3d-a4d5-be859093c995.us-east4-0.gcp.cloud.qdrant.io:6333'
-    vectorstore = Qdrant.from_documents(
-        documents=splits,
-        embedding=embeddings,
-        url=url,
-        api_key=api_key,
-        collection_name=f'{chunk_size}'
-    )
+    vectorstore = Qdrant.from_documents(documents=splits, embedding=embeddings, url=url, api_key=api_key, collection_name=f'{chunk_size}')
     return vectorstore
 
 def process_user_input(user_query, vectorstore):
@@ -83,10 +73,11 @@ def process_user_input(user_query, vectorstore):
         repetition_penalty=1
     )
 
-    custom_rag_prompt = PromptTemplate.from_template(TEMPLATE)
+    template = TEMPLATE
+    custom_rag_prompt = PromptTemplate.from_template(template)
 
     rag_chain_from_docs = (
-        RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
+        RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"],x["page"])))
         | custom_rag_prompt
         | llm
         | StrOutputParser()
@@ -95,17 +86,9 @@ def process_user_input(user_query, vectorstore):
     rag_chain_with_source = RunnableParallel(
         {"context": retriever, "question": RunnablePassthrough()}
     ).assign(answer=rag_chain_from_docs)
-
-    llm_response = rag_chain_with_source.invoke({"question": user_query})
+    llm_response = rag_chain_with_source.invoke(user_query)
     print("\nLLM Response: \n", llm_response)
-
-    relevant_docs = llm_response.get('context', [])
-    if not relevant_docs:
-        print("No relevant documents found in the response.")
-        return "No relevant documents found."
-
-    pagestr = ''.join([f'[{doc.metadata["page"] + 1}]' for doc in relevant_docs])
-    final_output = llm_response["answer"].strip() + pagestr
+    final_output = llm_response["answer"].strip()
     print("\nTrimmed LLM Answer: \n", final_output)
     return final_output
 
@@ -116,3 +99,6 @@ def format_docs(docs):
         page = doc.metadata.get('page')
         formatted_docs.append(f"{content} PageNo:{page}")
     return "\n\n".join(formatted_docs)
+
+def substring_after(s, delim):
+    return s.partition(delim)[2]

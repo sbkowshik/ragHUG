@@ -45,7 +45,7 @@ def main():
                     st.error("Upload PDF")
 
     user_query = st.text_input("Ask question")
-    usq=user_query + '\n' + 'Mention the Page number of the information right after the relevant information in this format [Page No]'
+    usq=user_query + 'Mention the page number of the information you got from the textbook [Page No]'
     if user_query and st.session_state['vectorstore']:
         llm_answer = process_user_input(user_query, st.session_state['vectorstore'])
         st.markdown(create_chat_bubble(llm_answer), unsafe_allow_html=True)

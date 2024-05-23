@@ -86,9 +86,7 @@ def process_user_input(user_query, vectorstore):
         {"context": retriever, "question": RunnablePassthrough()}
     ).assign(answer=rag_chain_from_docs)
     llm_response = rag_chain_with_source.invoke(user_query)
-    print("\nLLM Response: \n", llm_response)
     final_output = llm_response["answer"]
-    print("\nTrimmed LLM Answer: \n", final_output)
     return final_output
 
 def format_docs(docs):

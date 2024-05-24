@@ -12,7 +12,7 @@ from langchain_core.prompts import PromptTemplate
 INFERENCE_API_KEY = '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'
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
-Use the following pieces of context to answer the question at the end. MAKE SURE YOU MENTION THE NAME OF THE FILE ALONG WITH PAGE NUMBERS OF INFORMATION FROM THE METADATA AT THE END OF YOUR ANSWER FOR ALL THE QUERIES.
+Use the following pieces of context to answer the question at the end. MAKE SURE YOU MENTION THE NAME OF THE FILE ALONG WITH PAGE NUMBERS OF INFORMATION FROM THE METADATA AT THE END OF YOUR RESPONSE EVERYTIME.
 If you don't know the answer, just say that you don't know; don't try to make up an answer.
 Use three sentences maximum and keep the answer as concise as possible.
 

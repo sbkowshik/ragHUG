@@ -3,9 +3,7 @@ from rag_chain import load_pdf_text, determine_optimal_chunk_size, chunk_and_sto
 from langchain_community.callbacks.streamlit import (
     StreamlitCallbackHandler,
 )
-token=st.secrets["HUGGINGFACEHUB_API_TOKEN"]
-qurl=st.secrets["QDRANT_URL"]
-qapi=st.secrets["QDRANT_API"]
+
 def main():
     st.set_page_config("Social Studies RAG Assistant")
     st.title("Social Studies RAG Assistant")

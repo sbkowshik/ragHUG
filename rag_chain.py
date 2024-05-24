@@ -8,7 +8,9 @@ from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_community.llms import HuggingFaceEndpoint
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import PromptTemplate
-from streamlit_app import token,qurl,qapi
+token='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'
+qurl='QsuDAMdZ4VmCfJ5bIlfIu3XOiowi0YCwnlhmsLy93nUQTb1URiW-0A'
+qapi='https://cf63628d-3ce6-4c3d-a4d5-be859093c995.us-east4-0.gcp.cloud.qdrant.io:6333'
 
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.

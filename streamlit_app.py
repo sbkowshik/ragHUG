@@ -22,7 +22,7 @@ def main():
                         st.session_state['vectorstore'] = chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap)
                         st.success("PDF Processed")
                 else:
-                    st.error("Upload PDF")
+                    st.info("Upload PDF")
 
     user_query = st.chat_input("Ask question")
     #usq=str(user_query) + "You must tell me the page numbers of the relevant information you got from the textbook"

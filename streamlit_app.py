@@ -25,7 +25,7 @@ def main():
                     st.info("Upload PDF")
 
     user_query = st.chat_input("Ask question")
-    usq= "You must tell me the file name along with page numbers of the relevant information from the METADATA ONLY in this format [File Name : Page Numbers]"
+    usq= "You must tell me the file name along with page numbers of the relevant information only from the METADATA in this format [File Name : Page Numbers]"
     if user_query and st.session_state['vectorstore']:
         print(user_query)
         with st.chat_message("user",avatar="😺"):

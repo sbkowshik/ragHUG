@@ -49,24 +49,24 @@ def determine_optimal_chunk_size(doc_length):
         chunk_overlap = 500
     return chunk_size, chunk_overlap
 
-def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap):
+def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap,token,qurl,qapi):
     embeddings = HuggingFaceInferenceAPIEmbeddings(
-        api_key=INFERENCE_API_KEY, model_name="sentence-transformers/all-MiniLM-l6-v2"
+        api_key=token, model_name="sentence-transformers/all-MiniLM-l6-v2"
     )
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     splits = text_splitter.split_documents(docs)
 
-    api_key = 'QsuDAMdZ4VmCfJ5bIlfIu3XOiowi0YCwnlhmsLy93nUQTb1URiW-0A'
-    url = 'https://cf63628d-3ce6-4c3d-a4d5-be859093c995.us-east4-0.gcp.cloud.qdrant.io:6333'
+    api_key = qapi
+    url = qurl
     vectorstore = Qdrant.from_documents(documents=splits, embedding=embeddings, url=url, api_key=api_key, collection_name=f'test1234')
     return vectorstore
 
-def process_user_input(user_query, vectorstore):
+def process_user_input(user_query, vectorstore,token):
     retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
 
     llm = HuggingFaceEndpoint(
-        huggingfacehub_api_token=INFERENCE_API_KEY,
+        huggingfacehub_api_token=token,
         repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
         task="text-generation",
         max_new_tokens=512,

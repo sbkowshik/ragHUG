@@ -8,9 +8,6 @@ from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_community.llms import HuggingFaceEndpoint
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import PromptTemplate
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains import create_history_aware_retriever
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
 Use the following pieces of context and chat history to answer the question at the end.
@@ -81,14 +78,15 @@ def process_user_input(user_query, vectorstore, token, chat_history):
     )
 
     template = PromptTemplate.from_template(TEMPLATE)
-    history_aware_retriever = create_history_aware_retriever(
-    llm, retriever, template
-)
-    question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
+    rag_chain_from_docs = (
+        RunnablePassthrough()
+        | template
+        | llm
+        | StrOutputParser()
+    )
 
-    rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
-    llm_response = rag_chain.invoke({"input": user_query,"chat_history": chat_history})
-    final_output = llm_response["answer"]
+    llm_response = rag_chain_from_docs.invoke({"context": context, "question": user_query, "chat_history": chat_history})
+    final_output = llm_response
     return final_output
 
 def format_docs(docs):

@@ -23,7 +23,6 @@ Question: {question}
 
 Answer:"""
 
-
 def load_pdf_text(uploaded_file):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
         shutil.copyfileobj(uploaded_file, temp_file)
@@ -65,6 +64,9 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap,token,qurl,q
 
 def process_user_input(user_query, vectorstore, token, chat_history):
     retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
+    relevant_docs = retriever.retrieve(user_query)
+
+    context = format_docs(relevant_docs)
 
     llm = HuggingFaceEndpoint(
         huggingfacehub_api_token=token,
@@ -80,30 +82,21 @@ def process_user_input(user_query, vectorstore, token, chat_history):
     template = TEMPLATE
     custom_rag_prompt = PromptTemplate.from_template(template)
     rag_chain_from_docs = (
-        RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
+        RunnablePassthrough.assign(context=context, chat_history=chat_history, question=user_query)
         | custom_rag_prompt
         | llm
         | StrOutputParser()
     )
 
-    rag_chain_with_source = RunnableParallel(
-        {"context": retriever, "question": RunnablePassthrough()}
-    ).assign(answer=rag_chain_from_docs)
-
-    llm_response = rag_chain_with_source.invoke({"context": retriever, "question": user_query, "chat_history": chat_history})
-    
+    llm_response = rag_chain_from_docs.invoke({"context": context, "question": user_query, "chat_history": chat_history})
     final_output = llm_response["answer"]
     return final_output
-
 
 def format_docs(docs):
     formatted_docs = []
     for doc in docs:
         content = doc.page_content
-        page = doc.metadata.get('page')+1
+        page = doc.metadata.get('page') + 1
         source = doc.metadata.get('filename')
         formatted_docs.append(f"{content} Source: {source} : {page}")
     return "\n\n".join(formatted_docs)
-
-def substring_after(s, delim):
-    return s.partition(delim)[2]

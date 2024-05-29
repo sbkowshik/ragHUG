@@ -40,6 +40,7 @@ def main():
             st.markdown(user_query)
         with st.chat_message("assistant",avatar="🦖"):
             llm_answer = process_user_input(user_query + usq, st.session_state['vectorstore'],token=token)
+            st.markdown(llm_answer)
         st.session_state['chat_history'].append({"role": "assistant", "content": llm_answer})
     elif user_query:
         st.warning("Upload PDF")

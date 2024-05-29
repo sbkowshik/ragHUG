@@ -77,10 +77,10 @@ def process_user_input(user_query, vectorstore, token, chat_history):
         repetition_penalty=1
     )
 
-    custom_rag_prompt = PromptTemplate.from_template(TEMPLATE)
+    template = PromptTemplate.from_template(TEMPLATE)
     rag_chain_from_docs = (
-        RunnablePassthrough().assign(context=context, chat_history=chat_history, question=user_query)
-        | custom_rag_prompt
+        RunnablePassthrough()
+        | template
         | llm
         | StrOutputParser()
     )

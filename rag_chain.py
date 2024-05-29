@@ -8,8 +8,6 @@ from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_community.llms import HuggingFaceEndpoint
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import PromptTemplate
-from langchain.memory import ConversationBufferMemory
-
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
 Use the following pieces of context and chat history to answer the question at the end.
@@ -38,10 +36,10 @@ def load_pdf_text(uploaded_file):
     return docs, doc_length
 
 def determine_optimal_chunk_size(doc_length):
-    if (doc_length < 5000):
+    if doc_length < 5000:
         chunk_size = 500
         chunk_overlap = 100
-    elif (doc_length < 20000):
+    elif doc_length < 20000:
         chunk_size = 1000
         chunk_overlap = 250
     else:
@@ -49,22 +47,22 @@ def determine_optimal_chunk_size(doc_length):
         chunk_overlap = 500
     return chunk_size, chunk_overlap
 
-def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap,token,qurl,qapi):
+def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl, qapi):
     embeddings = HuggingFaceInferenceAPIEmbeddings(
-        api_key=token, model_name="sentence-transformers/all-MiniLM-l6-v2"
+        api_key=token, model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     splits = text_splitter.split_documents(docs)
 
-    api_key = qapi
-    url = qurl
-    vectorstore = Qdrant.from_documents(documents=splits, embedding=embeddings, url=url, api_key=api_key, collection_name=f'test1234')
+    vectorstore = Qdrant.from_documents(
+        documents=splits, embedding=embeddings, url=qurl, api_key=qapi, collection_name='test1234'
+    )
     return vectorstore
 
 def process_user_input(user_query, vectorstore, token, chat_history):
     retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
-    relevant_docs = retriever.retrieve(user_query)
+    relevant_docs = retriever.get_relevant_documents(user_query)
 
     context = format_docs(relevant_docs)
 
@@ -79,10 +77,9 @@ def process_user_input(user_query, vectorstore, token, chat_history):
         repetition_penalty=1
     )
 
-    template = TEMPLATE
-    custom_rag_prompt = PromptTemplate.from_template(template)
+    custom_rag_prompt = PromptTemplate.from_template(TEMPLATE)
     rag_chain_from_docs = (
-        RunnablePassthrough.assign(context=context, chat_history=chat_history, question=user_query)
+        RunnablePassthrough().assign(context=context, chat_history=chat_history, question=user_query)
         | custom_rag_prompt
         | llm
         | StrOutputParser()

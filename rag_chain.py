@@ -86,8 +86,7 @@ def process_user_input(user_query, vectorstore, token, chat_history):
     )
 
     llm_response = rag_chain_from_docs.invoke({"context": context, "question": user_query, "chat_history": chat_history})
-    print(llm_response)
-    final_output = llm_response[0]
+    final_output = llm_response
     return final_output
 
 def format_docs(docs):

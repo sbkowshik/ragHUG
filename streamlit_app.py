@@ -43,11 +43,11 @@ def main():
     
     if user_query and st.session_state['vectorstore']:
         usq = "You must mention the file name along with page numbers of the relevant information only from the METADATA in this format [File Name : Page Numbers]"
-        with st.chat_message("user", avatar="😺"):
+        with st.chat_message("user"):
             st.write(user_query)
         st.session_state['messages'].append({"role": "user", "content": user_query})
         
-        with st.chat_message("assistant", avatar="🦖"):
+        with st.chat_message("assistant"):
             llm_answer = process_user_input(user_query + usq, st.session_state['vectorstore'], token=token)
             st.write(llm_answer)
         st.session_state['messages'].append({"role": "assistant", "content": llm_answer})

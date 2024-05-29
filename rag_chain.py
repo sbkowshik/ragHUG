@@ -8,20 +8,21 @@ from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_community.llms import HuggingFaceEndpoint
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import PromptTemplate
+from langchain.memory import ConversationBufferMemory
 
-INFERENCE_API_KEY = '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'
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
-Use the following pieces of context to answer the question at the end.
+Use the following pieces of context and chat history to answer the question at the end.
 MAKE SURE YOU MENTION THE NAME OF THE FILE ALONG WITH PAGE NUMBERS OF INFORMATION FROM THE METADATA AT THE END OF YOUR RESPONSE EVERYTIME IN THIS FORMAT [File Name : Page Number].
 If you don't know the answer, just say that you don't know; don't try to make up an answer.
 Use three sentences maximum and keep the answer as concise as possible.
 
-{context}
-
+Chat History: {chat_history}
+Context: {context}
 Question: {question}
 
 Answer:"""
+
 
 def load_pdf_text(uploaded_file):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
@@ -62,7 +63,7 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap,token,qurl,q
     vectorstore = Qdrant.from_documents(documents=splits, embedding=embeddings, url=url, api_key=api_key, collection_name=f'test1234')
     return vectorstore
 
-def process_user_input(user_query, vectorstore,token):
+def process_user_input(user_query, vectorstore, token, chat_history):
     retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
 
     llm = HuggingFaceEndpoint(
@@ -84,13 +85,16 @@ def process_user_input(user_query, vectorstore,token):
         | llm
         | StrOutputParser()
     )
-    print(rag_chain_from_docs)
+
     rag_chain_with_source = RunnableParallel(
         {"context": retriever, "question": RunnablePassthrough()}
     ).assign(answer=rag_chain_from_docs)
-    llm_response = rag_chain_with_source.invoke(user_query)
+
+    llm_response = rag_chain_with_source.invoke({"context": retriever.retrieve(user_query), "question": user_query, "chat_history": chat_history})
+    
     final_output = llm_response["answer"]
     return final_output
+
 
 def format_docs(docs):
     formatted_docs = []

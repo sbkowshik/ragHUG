@@ -1,6 +1,5 @@
 import streamlit as st
 from rag_chain import load_pdf_text, determine_optimal_chunk_size, chunk_and_store_in_vector_store, process_user_input
-from langchain_community.callbacks.streamlit import StreamlitCallbackHandler
 
 token = st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 qurl = st.secrets["QDRANT_URL"]
@@ -34,7 +33,6 @@ def main():
                 else:
                     st.info("Please upload PDFs")
     
-    # Display chat history
     for message in st.session_state['messages']:
         with st.chat_message(message["role"]):
             st.write(message["content"])
@@ -46,9 +44,11 @@ def main():
         with st.chat_message("user"):
             st.write(user_query)
         st.session_state['messages'].append({"role": "user", "content": user_query})
-        
+
+        chat_history = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state['messages']])
+
         with st.chat_message("assistant"):
-            llm_answer = process_user_input(user_query + usq, st.session_state['vectorstore'], token=token)
+            llm_answer = process_user_input(user_query + usq, st.session_state['vectorstore'], token, chat_history)
             st.write(llm_answer)
         st.session_state['messages'].append({"role": "assistant", "content": llm_answer})
     elif user_query:

@@ -27,6 +27,10 @@ def main():
                     st.success("PDFs Processed")
                 else:
                     st.info("Upload PDF")
+    st.session_state['chat_history']=[]
+    for message in st.session_state['chat_history']:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
     user_query = st.chat_input("Ask question")
     usq= "You must mention the file name along with page numbers of the relevant information only from the METADATA in this format [File Name : Page Numbers]"
@@ -36,8 +40,7 @@ def main():
             st.markdown(user_query)
         with st.chat_message("assistant",avatar="🦖"):
             llm_answer = process_user_input(user_query + usq, st.session_state['vectorstore'],token=token)
-            st.markdown(llm_answer)
-
+        st.session_state['chat_history'].append({"role": "assistant", "content": llm_answer})
     elif user_query:
         st.warning("Upload PDF")
 

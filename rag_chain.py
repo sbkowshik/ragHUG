@@ -1,7 +1,5 @@
 import tempfile
 import shutil
-from langchain.chains import ConversationalRetrievalChain
-
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Qdrant
 from langchain_core.output_parsers import StrOutputParser
@@ -80,10 +78,15 @@ def process_user_input(user_query, vectorstore, token, chat_history):
     )
 
     template = PromptTemplate.from_template(TEMPLATE)
-    pdf_qa = ConversationalRetrievalChain.from_llm(llm, vectorstore.as_retriever(), return_source_documents=True)
+    rag_chain_from_docs = (
+        RunnablePassthrough()
+        | template
+        | llm
+        | StrOutputParser()
+    )
 
-    llm_response = pdf_qa.invoke({"context": context, "question": user_query, "chat_history": chat_history})
-    final_output = llm_response['answer']
+    llm_response = rag_chain_from_docs.invoke({"context": context, "question": user_query, "chat_history": chat_history})
+    final_output = llm_response
     return final_output
 
 def format_docs(docs):

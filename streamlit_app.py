@@ -44,11 +44,8 @@ def main():
         with st.chat_message("user"):
             st.write(user_query)
         st.session_state['messages'].append({"role": "user", "content": user_query})
-        ch=[]
-        for msg in st.session_state['messages']:
-            ch.append[(msg['role'],msg['content'])]
-        #chat_history = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state['messages']])
-        chat_history=ch
+
+        chat_history = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state['messages']])
         with st.chat_message("assistant"):
             llm_answer = process_user_input(user_query + usq, st.session_state['vectorstore'], token, chat_history)
             st.write(llm_answer)

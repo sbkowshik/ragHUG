@@ -51,7 +51,7 @@ def main():
             ch.append((msg['role'], msg['content']))
         chat_history = ch
         with st.chat_message("assistant"):
-            llm_answer = process_user_input(user_query + usq, st.session_state['vectorstore'], token, chat_history,session_id)
+            llm_answer = process_user_input(user_query + usq, st.session_state['vectorstore'], token, chat_history)
             st.write(llm_answer)
         st.session_state['messages'].append({"role": "assistant", "content": llm_answer})
     elif user_query:

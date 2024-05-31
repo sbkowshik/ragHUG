@@ -91,7 +91,7 @@ def process_user_input(user_query, vectorstore, token, chat_history,sessionid):
     chain,
     get_session_history=get_session_history,
     input_messages_key="question",
-    output_messages_key="output"
+    output_messages_key="output",
     history_messages_key="chat_history")
     llm_response = with_message_history.invoke({"question":user_query},config={
         "configurable": {"session_id": sessionid}

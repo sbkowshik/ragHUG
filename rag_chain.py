@@ -67,9 +67,7 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
 
 def process_user_input(user_query, vectorstore, token, chat_history):
     retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
-    relevant_docs = retriever.get_relevant_documents(user_query)
 
-    context = format_docs(relevant_docs)
     store = {}
     def get_session_history(session_id: str) -> BaseChatMessageHistory:
         if session_id not in store:

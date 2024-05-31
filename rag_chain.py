@@ -11,16 +11,16 @@ from langchain_core.prompts import PromptTemplate
 from langchain.chains import StuffDocumentsChain, LLMChain
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
-Use the following pieces of context and chat history to answer the question at the end.
+Use the following pieces of context to answer the question at the end.
 MAKE SURE YOU MENTION THE NAME OF THE FILE ALONG WITH PAGE NUMBERS OF INFORMATION FROM THE METADATA AT THE END OF YOUR RESPONSE EVERYTIME IN THIS FORMAT [File Name : Page Number].
 If you don't know the answer, just say that you don't know; don't try to make up an answer.
 Keep the answer as concise as possible.
 
-History : {chat_history}
-Context : {context}
+{context}
 
 Question: {question}
-"""
+
+Answer:"""
 
 def load_pdf_text(uploaded_file):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
@@ -98,7 +98,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         | StrOutputParser()
     )
     rag_chain_with_source = RunnableParallel(
-        {"context": retriever,"chat_history" : chat_history, "question": RunnablePassthrough()}
+        {"context": retriever, "question": RunnablePassthrough()}
     ).assign(answer=rag_chain_from_docs)
     llm_response = rag_chain_with_source.invoke(qu)
     final_output = llm_response['answer']

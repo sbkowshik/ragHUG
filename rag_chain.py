@@ -89,7 +89,7 @@ def process_user_input(user_query, vectorstore, token, chat_history,sessionid):
     chain = first_step | prompt_template | llm
     with_message_history = RunnableWithMessageHistory(
     chain,
-    get_session_history=get_session_history,
+    get_session_history=chat_history,
     input_messages_key="question",
     history_messages_key="chat_history")
     llm_response = with_message_history.invoke({"question":user_query},config={

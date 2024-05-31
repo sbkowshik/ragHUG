@@ -82,7 +82,7 @@ def process_user_input(user_query, vectorstore, token, chat_history,sessionid):
     prompt_template = ChatPromptTemplate.from_messages(
     [("system", TEMPLATE),
     MessagesPlaceholder(variable_name="chat_history"),
-    ("human", "{input}")]
+    ("human", "{question}")]
 )   
     context = itemgetter("question") | retriever | format_docs
     first_step = RunnablePassthrough.assign(context=context)

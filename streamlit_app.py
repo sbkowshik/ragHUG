@@ -1,61 +1,99 @@
-import streamlit as st
-from rag_chain import load_pdf_text, determine_optimal_chunk_size, chunk_and_store_in_vector_store, process_user_input
-import uuid
+import tempfile
+import shutil
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import Qdrant
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnableParallel, RunnablePassthrough
+from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
+from langchain_community.llms import HuggingFaceEndpoint
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_core.prompts import PromptTemplate
 
-token = st.secrets["HUGGINGFACEHUB_API_TOKEN"]
-qurl = st.secrets["QDRANT_URL"]
-qapi = st.secrets["QDRANT_API"]
+TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
+Use the following pieces of context and chat history to answer the question at the end.
+MAKE SURE YOU MENTION THE NAME OF THE FILE ALONG WITH PAGE NUMBERS OF INFORMATION FROM THE METADATA AT THE END OF YOUR RESPONSE EVERYTIME IN THIS FORMAT [File Name : Page Number].
+If you don't know the answer, just say that you don't know; don't try to make up an answer.
+Use three sentences maximum and keep the answer as concise as possible.
 
-def main():
-    
-    st.set_page_config(page_title="Social Studies RAG Assistant")
-    st.title("Social Studies RAG Assistant")
-    session_id = str(uuid.uuid4)
-    if 'vectorstore' not in st.session_state:
-        st.session_state['vectorstore'] = None
-        
-    if 'messages' not in st.session_state:
-        st.session_state['messages'] = []
-    
-    with st.sidebar:
-        st.title("Kowshik S B")
-        
-        st.session_state['source_docs'] = st.file_uploader("Upload PDFs", accept_multiple_files=True)
-        
-        if st.button("Submit"):
-            with st.spinner("Processing PDFs..."):
-                if st.session_state['source_docs']:
-                    for source_doc in st.session_state['source_docs']:
-                        docs, doc_length = load_pdf_text(source_doc)
-                        chunk_size, chunk_overlap = determine_optimal_chunk_size(doc_length)
-                        st.session_state['vectorstore'] = chunk_and_store_in_vector_store(
-                            docs, chunk_size, chunk_overlap, token=token, qapi=qapi, qurl=qurl
-                        )
-                    st.success("PDFs Processed")
-                else:
-                    st.info("Please upload PDFs")
-    
-    for message in st.session_state['messages']:
-        with st.chat_message(message["role"]):
-            st.write(message["content"])
-    
-    user_query = st.chat_input("Ask a question")
-    
-    if user_query and st.session_state['vectorstore']:
-        usq = ". \t You must mention the file name along with page numbers of the relevant information only from the METADATA in this format [File Name : Page Numbers]"
-        with st.chat_message("user"):
-            st.write(user_query)
-        st.session_state['messages'].append({"role": "user", "content": user_query})
-        ch = []
-        for msg in st.session_state['messages']:
-            ch.append((msg['role'], msg['content']))
-        chat_history = ch
-        with st.chat_message("assistant"):
-            llm_answer = process_user_input(user_query + usq, st.session_state['vectorstore'], token, chat_history)
-            st.write(llm_answer)
-        st.session_state['messages'].append({"role": "assistant", "content": llm_answer})
-    elif user_query:
-        st.warning("Please upload PDFs")
+Chat History: {chat_history}
+Context: {context}
+Question: {question}
 
-if __name__ == "__main__":
-    main()
+Answer:"""
+
+def load_pdf_text(uploaded_file):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
+        shutil.copyfileobj(uploaded_file, temp_file)
+        temp_file_path = temp_file.name
+
+    loader = PyPDFLoader(temp_file_path)
+    docs = loader.load()
+    for doc in docs:
+        doc.metadata['filename'] = uploaded_file.name
+    total_text = "\n".join(doc.page_content for doc in docs)
+    doc_length = len(total_text)
+
+    return docs, doc_length
+
+def determine_optimal_chunk_size(doc_length):
+    if doc_length < 5000:
+        chunk_size = 500
+        chunk_overlap = 100
+    elif doc_length < 20000:
+        chunk_size = 1000
+        chunk_overlap = 250
+    else:
+        chunk_size = 2000
+        chunk_overlap = 500
+    return chunk_size, chunk_overlap
+
+def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl, qapi):
+    embeddings = HuggingFaceInferenceAPIEmbeddings(
+        api_key=token, model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
+
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    splits = text_splitter.split_documents(docs)
+
+    vectorstore = Qdrant.from_documents(
+        documents=splits, embedding=embeddings, url=qurl, api_key=qapi, collection_name='test1234'
+    )
+    return vectorstore
+
+def process_user_input(user_query, vectorstore, token, chat_history):
+    retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
+    relevant_docs = retriever.get_relevant_documents(user_query)
+
+    context = format_docs(relevant_docs)
+
+    llm = HuggingFaceEndpoint(
+        huggingfacehub_api_token=token,
+        repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
+        task="text-generation",
+        max_new_tokens=512,
+        top_k=50,
+        top_p=0.8,
+        temperature=0.1,
+        repetition_penalty=1
+    )
+
+    template = PromptTemplate.from_template(TEMPLATE)
+    rag_chain_from_docs = (
+        RunnablePassthrough()
+        | template
+        | llm
+        | StrOutputParser()
+    )
+
+    llm_response = rag_chain_from_docs.invoke({"context": context, "question": user_query, "chat_history": chat_history})
+    final_output = llm_response
+    return final_output
+
+def format_docs(docs):
+    formatted_docs = []
+    for doc in docs:
+        content = doc.page_content
+        page = doc.metadata.get('page') + 1
+        source = doc.metadata.get('filename')
+        formatted_docs.append(f"{content} Source: {source} : {page}")
+    return "\n\n".join(formatted_docs)

@@ -103,7 +103,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         {"context": retriever, "question": RunnablePassthrough()}
     ).assign(answer=rag_chain_from_docs)
     llm_response = rag_chain_with_source.invoke(qu)
-    final_output = llm_response['answer']
+    final_output = f'Intermediate Question {standalone_question} \n Answer: {llm_response['answer']}'
     return final_output
 
 def format_docs(docs):

@@ -1,11 +1,16 @@
 import tempfile
 import shutil
+from operator import itemgetter
+from typing import List
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Qdrant
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_community.llms import HuggingFaceEndpoint
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import PromptTemplate
 
@@ -65,7 +70,11 @@ def process_user_input(user_query, vectorstore, token, chat_history):
     relevant_docs = retriever.get_relevant_documents(user_query)
 
     context = format_docs(relevant_docs)
-
+    store = {}
+    def get_session_history(session_id: str) -> BaseChatMessageHistory:
+        if session_id not in store:
+            store[session_id] = ChatMessageHistory()
+        return store[session_id]
     llm = HuggingFaceEndpoint(
         huggingfacehub_api_token=token,
         repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
@@ -78,15 +87,18 @@ def process_user_input(user_query, vectorstore, token, chat_history):
     )
 
     template = PromptTemplate.from_template(TEMPLATE)
-    rag_chain_from_docs = (
-        RunnablePassthrough()
-        | template
-        | llm
-        | StrOutputParser()
-    )
-
-    llm_response = rag_chain_from_docs.invoke({"context": context, "question": user_query, "chat_history": chat_history})
-    final_output = llm_response
+    context = itemgetter("question") | retriever | format_docs
+    first_step = RunnablePassthrough.assign(context=context)
+    chain = first_step | template | llm
+    with_message_history = RunnableWithMessageHistory(
+    chain,
+    get_session_history=get_session_history,
+    input_messages_key="question",
+    history_messages_key="history")
+    llm_response = with_message_history.invoke({"input":user_query},config={
+        "configurable": {"session_id": "abc123"}
+    })
+    final_output = llm_response['answer']
     return final_output
 
 def format_docs(docs):

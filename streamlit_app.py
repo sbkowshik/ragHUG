@@ -1,6 +1,6 @@
 import streamlit as st
 from rag_chain import load_pdf_text, determine_optimal_chunk_size, chunk_and_store_in_vector_store, process_user_input
-from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
+import uuid
 
 token = st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 qurl = st.secrets["QDRANT_URL"]
@@ -10,8 +10,7 @@ def main():
     
     st.set_page_config(page_title="Social Studies RAG Assistant")
     st.title("Social Studies RAG Assistant")
-    ctx = get_script_run_ctx()
-    session_id = ctx.id
+    session_id = str(uuid.uuid4)
     if 'vectorstore' not in st.session_state:
         st.session_state['vectorstore'] = None
         

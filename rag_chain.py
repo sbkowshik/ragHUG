@@ -57,7 +57,7 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
     splits = text_splitter.split_documents(docs)
 
     vectorstore = Qdrant.from_documents(
-        documents=splits, embedding=embeddings, url=qurl, api_key=qapi, collection_name='main_test'
+        documents=splits, embedding=embeddings, url=qurl, api_key=qapi, collection_name='HistoryTest'
     )
     return vectorstore
 
@@ -65,7 +65,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
     retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
     
     template2 = PromptTemplate.from_template(
-    """Analyze the chat history and follow up question which might reference context in the chat history, If the question is direct which doesnt really refer to the chat history just return as it is , understand what is the user exactly asking, into  
+    """Analyze the chat history and follow up question which might reference context in the chat history, If the question is direct which doesnt refer to the chat history just return as it is , understand what is the user exactly asking, into  
     a standalone question which can be understood. Chat History: {chat_history}
     Follow up question: {question}
     YOUR FINAL OUTPUT SHOULD JUST BE THE STANDALONE QUESTION NOTHING ELSE."""
@@ -88,8 +88,6 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         original_string = original_string[len("Standalone question: "):]
     index = original_string.find("Analyze")
     standalone_question = original_string[:index].strip() if index != -1 else original_string.strip()
-    index = generated_question.find("Analyze")
-    standalone_question = generated_question[:index].strip()
     qu=standalone_question+usq
     template = TEMPLATE
     custom_rag_prompt = PromptTemplate.from_template(template)

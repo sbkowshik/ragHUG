@@ -1,16 +1,11 @@
 import tempfile
 import shutil
-from operator import itemgetter
-from typing import List
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Qdrant
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_community.llms import HuggingFaceEndpoint
-from langchain_community.chat_message_histories import ChatMessageHistory
-from langchain_core.chat_history import BaseChatMessageHistory
-from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import PromptTemplate
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -60,14 +55,12 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
     )
     return vectorstore
 
-def process_user_input(user_query, vectorstore, token, chat_history,sessionid):
+def process_user_input(user_query, vectorstore, token, chat_history):
     retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
+    relevant_docs = retriever.get_relevant_documents(user_query)
 
-    store = {}
-    def get_session_history(session_id: str) -> BaseChatMessageHistory:
-        if session_id not in store:
-            store[session_id] = ChatMessageHistory()
-        return store[session_id]
+    context = format_docs(relevant_docs)
+
     llm = HuggingFaceEndpoint(
         huggingfacehub_api_token=token,
         repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
@@ -84,17 +77,13 @@ def process_user_input(user_query, vectorstore, token, chat_history,sessionid):
     MessagesPlaceholder(variable_name="chat_history"),
     ("human", "{question}")]
 )   
-    context = itemgetter("question") | retriever | format_docs
-    first_step = RunnablePassthrough.assign(context=context)
-    chain = first_step | prompt_template | llm
-    with_message_history = RunnableWithMessageHistory(
-    chain,
-    get_session_history=chat_history,
-    input_messages_key="question",
-    history_messages_key="chat_history")
-    llm_response = with_message_history.invoke({"question":user_query},config={
-        "configurable": {"session_id": sessionid}
-    })
+    rag_chain_from_docs = (
+        RunnablePassthrough()
+        | prompt_template
+        | llm
+        | StrOutputParser()
+    )
+    llm_response = rag_chain_from_docs.invoke({"context": context, "question": user_query, "chat_history": chat_history})
     final_output = llm_response
     return final_output
 

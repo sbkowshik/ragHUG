@@ -91,10 +91,6 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
     print(standalone_question)
     qu=standalone_question+usq
     print(qu)
-    relevant_docs = retriever.get_relevant_documents(standalone_question)
-
-    context = format_docs(relevant_docs)
-    return f'Context Documents from Qdrant {context}'
     template = TEMPLATE
     custom_rag_prompt = PromptTemplate.from_template(template)
     rag_chain_from_docs = (

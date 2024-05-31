@@ -10,7 +10,7 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import PromptTemplate
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
-Use the following pieces of context and chat history to answer the question at the end.
+refer to the context and chat history and from that you build a context and history aware answer to the question at the end.
 MAKE SURE YOU MENTION THE NAME OF THE FILE ALONG WITH PAGE NUMBERS OF INFORMATION FROM THE METADATA AT THE END OF YOUR RESPONSE EVERYTIME IN THIS FORMAT [File Name : Page Number].
 If you don't know the answer, just say that you don't know; don't try to make up an answer.
 Use three sentences maximum and keep the answer as concise as possible.

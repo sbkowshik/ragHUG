@@ -85,8 +85,9 @@ def process_user_input(user_query, vectorstore, token, chat_history):
     )
 
     template = PromptTemplate.from_template(TEMPLATE)
+    context = itemgetter("question") | retriever | format_docs
     rag_chain_from_docs = (
-        RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
+        RunnablePassthrough.assign(context=context)
         | template
         | llm
         | StrOutputParser()

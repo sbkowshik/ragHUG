@@ -1,3 +1,4 @@
+
 import streamlit as st
 from rag_chain import load_pdf_text, determine_optimal_chunk_size, chunk_and_store_in_vector_store, process_user_input
 import uuid
@@ -51,7 +52,7 @@ def main():
             ch.append((msg['role'], msg['content']))
         chat_history = ch
         with st.chat_message("assistant"):
-            llm_answer = process_user_input(user_query + usq, st.session_state['vectorstore'], token, chat_history)
+            llm_answer = process_user_input(user_query, usq, st.session_state['vectorstore'], token, chat_history)
             st.write(llm_answer)
         st.session_state['messages'].append({"role": "assistant", "content": llm_answer})
     elif user_query:

@@ -1,14 +1,17 @@
 import streamlit as st
 from rag_chain import load_pdf_text, determine_optimal_chunk_size, chunk_and_store_in_vector_store, process_user_input
+from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 
 token = st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 qurl = st.secrets["QDRANT_URL"]
 qapi = st.secrets["QDRANT_API"]
 
 def main():
+    
     st.set_page_config(page_title="Social Studies RAG Assistant")
     st.title("Social Studies RAG Assistant")
-    
+    ctx = get_script_run_ctx()
+    session_id = ctx.id
     if 'vectorstore' not in st.session_state:
         st.session_state['vectorstore'] = None
         
@@ -48,9 +51,8 @@ def main():
         for msg in st.session_state['messages']:
             ch.append((msg['role'], msg['content']))
         chat_history = ch
-        #chat_history = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state['messages']])
         with st.chat_message("assistant"):
-            llm_answer = process_user_input(user_query + usq, st.session_state['vectorstore'], token, chat_history)
+            llm_answer = process_user_input(user_query + usq, st.session_state['vectorstore'], token, chat_history,session_id)
             st.write(llm_answer)
         st.session_state['messages'].append({"role": "assistant", "content": llm_answer})
     elif user_query:

@@ -88,7 +88,9 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         original_string = original_string[len("Standalone question: "):]
     index = original_string.find("Analyze")
     standalone_question = original_string[:index].strip() if index != -1 else original_string.strip()
+    print(standalone_question)
     qu=standalone_question+usq
+    print(qu)
     template = TEMPLATE
     custom_rag_prompt = PromptTemplate.from_template(template)
     rag_chain_from_docs = (

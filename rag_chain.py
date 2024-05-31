@@ -95,7 +95,7 @@ def process_user_input(user_query, vectorstore, token, chat_history,sessionid):
     llm_response = with_message_history.invoke({"question":user_query},config={
         "configurable": {"session_id": sessionid}
     })
-    final_output = llm_response[0]
+    final_output = llm_response
     return final_output
 
 def format_docs(docs):

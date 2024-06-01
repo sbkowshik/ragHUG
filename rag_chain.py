@@ -104,6 +104,11 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         name="page",
         description="The Page number of the information.",
         type="integer",
+    ),
+    AttributeInfo(
+        name="source",
+        description="unecessary information dont consider it.",
+        type="string",
     )
     ]
     document_content_description='Contents of the different textbooks.'

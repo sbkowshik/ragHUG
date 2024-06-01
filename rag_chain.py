@@ -128,11 +128,8 @@ def process_user_input(user_query, usq, vectorstore, token, chat_history):
         | llm
         | StrOutputParser()
     )
-    
-    rag_chain_with_source = RunnableParallel(
-        {"context": output, "question": RunnablePassthrough()}
-    ).assign(answer=rag_chain_from_docs)
-    llm_response = rag_chain_with_source.invoke(standalone_question)
+    qu=standalone_question + usq
+    llm_response = rag_chain_from_docs.invoke({'question':qu})
     final_output = f"{standalone_question}\n\n{llm_response['answer']}"
     
     return final_output

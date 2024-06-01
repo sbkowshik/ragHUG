@@ -121,7 +121,7 @@ def process_user_input(user_query, usq, vectorstore, token, chat_history):
     for resp in relevant_docs:
         output += f'{resp.page_content}, "\n Source : {resp.metadata["filename"]}:{resp.metadata["page"] + 1} "\n\n'
     custom_rag_prompt = PromptTemplate.from_template(TEMPLATE)
-    
+    return output
     rag_chain_from_docs = (
         RunnablePassthrough.assign(context=output)
         | custom_rag_prompt

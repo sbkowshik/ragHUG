@@ -11,6 +11,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain.chains import StuffDocumentsChain, LLMChain
 from langchain.retrievers.self_query.base import SelfQueryRetriever
 from langchain.chains.query_constructor.base import AttributeInfo
+from langchain.chains import create_retrieval_chain
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
 Use the following pieces of context to answer the question at the end.
@@ -90,7 +91,7 @@ def process_user_input(user_query, usq, vectorstore, token, chat_history):
     else:
         standalone_question = generated_question.strip()
     
-    metadata_field_info = [
+    x='''metadata_field_info = [
         AttributeInfo(
             name="filename",
             description="Name of the file",
@@ -121,7 +122,8 @@ def process_user_input(user_query, usq, vectorstore, token, chat_history):
     for resp in relevant_docs:
         output += f'{resp.page_content}, "\n Source : {resp.metadata["filename"]}:{resp.metadata["page"] + 1} "\n\n'
     custom_rag_prompt = PromptTemplate.from_template(TEMPLATE)
-    return output
+    return output'''
+
     rag_chain_from_docs = (
         RunnablePassthrough.assign(context=output)
         | custom_rag_prompt

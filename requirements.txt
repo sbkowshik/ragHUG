@@ -14,3 +14,4 @@ scikit-learn
 huggingface_hub
 transformers
 qdrant-client
+lark

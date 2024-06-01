@@ -120,5 +120,19 @@ def process_user_input(user_query, usq, vectorstore, token, chat_history):
     output = ''''''
     for resp in relevant_docs:
         output += f'{resp.page_content}, "\n Source : {resp.metadata["filename"]}:{resp.metadata["page"] + 1} "\n\n'
-    llm_response = output
-    return llm_response
+    custom_rag_prompt = PromptTemplate.from_template(TEMPLATE)
+    
+    rag_chain_from_docs = (
+        RunnablePassthrough.assign(context=output)
+        | custom_rag_prompt
+        | llm
+        | StrOutputParser()
+    )
+    
+    rag_chain_with_source = RunnableParallel(
+        {"context": output, "question": RunnablePassthrough()}
+    ).assign(answer=rag_chain_from_docs)
+    llm_response = rag_chain_with_source.invoke(standalone_question)
+    final_output = f"{standalone_question}\n\n{llm_response['answer']}"
+    
+    return final_output

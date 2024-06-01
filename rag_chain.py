@@ -117,8 +117,8 @@ def process_user_input(user_query, usq, vectorstore, token, chat_history):
     )
     
     relevant_docs = retriever.invoke(standalone_question)
-    output=''''''
+    output = ''''''
     for resp in relevant_docs:
-        output+= f'{resp.page_content}, "\n Source : {resp.metadata['filename']}:{resp.metadata['page']+1} "\n\n'
+        output += f'{resp.page_content}, "\n Source : {resp.metadata["filename"]}:{resp.metadata["page"] + 1} "\n\n'
     llm_response = output
     return llm_response

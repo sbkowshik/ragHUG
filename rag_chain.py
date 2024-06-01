@@ -9,6 +9,10 @@ from langchain_community.llms import HuggingFaceEndpoint
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import PromptTemplate
 from langchain.chains import StuffDocumentsChain, LLMChain
+from langchain.retrievers.self_query.base import SelfQueryRetriever
+from langchain.chains.query_constructor.base import AttributeInfo
+
+
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
 Use the following pieces of context to answer the question at the end.
@@ -62,7 +66,6 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
     return vectorstore
 
 def process_user_input(user_query,usq, vectorstore, token, chat_history):
-    retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
     
     template2 = PromptTemplate.from_template(
     """Analyze the chat history and follow up question which might reference context in the chat history, If the question is direct which doesnt refer to the chat history just return as it is , understand what is the user exactly asking, into  
@@ -91,20 +94,37 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
     print(standalone_question)
     qu=standalone_question+usq
     print(qu)
-    relevant_docs = retriever.get_relevant_documents(standalone_question)
-
-    context = format_docs(relevant_docs)
-    return f'Context : -  Retrieved Relevant Documents from Qdrant \n {context}'
+    metadata_field_info = [
+    AttributeInfo(
+        name="filename",
+        description="Name of the file",
+        type="string",
+    ),
+    AttributeInfo(
+        name="page",
+        description="The Page number of the information.",
+        type="integer",
+    )
+    ]
+    document_content_description='Contents of the different textbooks.'
+    retriever = SelfQueryRetriever.from_llm(
+    llm,
+    vectorstore,
+    document_content_description,
+    metadata_field_info
+    )
+    relevant_docs = retriever.invoke(standalone_question)
+    co=format_docs(relevant_docs)
     template = TEMPLATE
     custom_rag_prompt = PromptTemplate.from_template(template)
     rag_chain_from_docs = (
-        RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
+        RunnablePassthrough.assign(context=co)
         | custom_rag_prompt
         | llm
         | StrOutputParser()
     )
     rag_chain_with_source = RunnableParallel(
-        {"context": retriever, "question": RunnablePassthrough()}
+        {"context": co, "question": RunnablePassthrough()}
     ).assign(answer=rag_chain_from_docs)
     llm_response = rag_chain_with_source.invoke(qu)
     final_output = f"{standalone_question} \n\n {llm_response['answer']}"

@@ -124,7 +124,8 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         document_content_description,
         metadata_field_info
     )
-    prompt1 = get_query_constructor_prompt(document_content_description, metadata_field_info,schema_prompt=PromptTemplate(template=f"Generate a query with the given question. Question : {standalone_question} "))
+    prompt1 = get_query_constructor_prompt(document_content_description, metadata_field_info,schema_prompt=PromptTemplate(template="Generate a query with the given question. Question : {question} "),
+            input_variables=['question'])
     output_parser = StructuredQueryOutputParser.from_components()
     query_constructor = prompt1 | llm | output_parser
     retriever = SelfQueryRetriever(

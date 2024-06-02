@@ -117,7 +117,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         metadata_field_info
     )
     llm_response=format_docs(retriever.invoke(qu))
-    return qu
+    return llm_response
 
 def format_docs(docs):
     formatted_docs = []

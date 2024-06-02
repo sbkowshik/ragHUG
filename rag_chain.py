@@ -11,7 +11,6 @@ from langchain_core.prompts import PromptTemplate
 from langchain.chains import StuffDocumentsChain, LLMChain
 from langchain.retrievers.self_query.base import SelfQueryRetriever
 from langchain.chains.query_constructor.base import AttributeInfo
-from langchain.chains import create_retrieval_chain
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
 Use the following pieces of context to answer the question at the end.
@@ -64,14 +63,14 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
     )
     return vectorstore
 
-def process_user_input(user_query, usq, vectorstore, token, chat_history):
-    template2 = PromptTemplate.from_template(
-        """Analyze the chat history and follow-up question which might reference context in the chat history. If the question is direct and doesn’t refer to the chat history, just return it as is. Understand what the user is exactly asking, and convert it into a standalone question which can be understood. 
-        Chat History: {chat_history}
-        Follow-up question: {question}
-        YOUR FINAL OUTPUT SHOULD JUST BE THE STANDALONE QUESTION, NOTHING ELSE."""
-    )
+def process_user_input(user_query,usq, vectorstore, token, chat_history):
     
+    template2 = PromptTemplate.from_template(
+    """Analyze the chat history and follow up question which might reference context in the chat history, If the question is direct which doesnt refer to the chat history just return as it is , understand what is the user exactly asking, into  
+    a standalone question which can be understood. Chat History: {chat_history}
+    Follow up question: {question}
+    YOUR FINAL OUTPUT SHOULD JUST BE THE STANDALONE QUESTION NOTHING ELSE."""
+    )
     llm = HuggingFaceEndpoint(
         huggingfacehub_api_token=token,
         repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
@@ -85,13 +84,14 @@ def process_user_input(user_query, usq, vectorstore, token, chat_history):
     
     question_generator_chain = LLMChain(llm=llm, prompt=template2)
     generated_question = question_generator_chain.run({'question': user_query, 'chat_history': chat_history})
-    
-    if generated_question.startswith("Standalone question: "):
-        standalone_question = generated_question[len("Standalone question: "):].strip()
-    else:
-        standalone_question = generated_question.strip()
-    
-    x='''metadata_field_info = [
+    original_string=generated_question
+    if original_string.startswith("Standalone question: "):
+        original_string = original_string[len("Standalone question: "):]
+    index = original_string.find("Analyze")
+    standalone_question = original_string[:index].strip() if index != -1 else original_string.strip()
+    qu=standalone_question+usq
+    template = TEMPLATE
+    metadata_field_info = [
         AttributeInfo(
             name="filename",
             description="Name of the file",
@@ -109,29 +109,32 @@ def process_user_input(user_query, usq, vectorstore, token, chat_history):
         )
     ]
     
-    document_content_description = 'Contents of the different textbooks.'
+    document_content_description = 'Chapter wise contents of textbooks.'
     retriever = SelfQueryRetriever.from_llm(
         llm,
         vectorstore,
         document_content_description,
         metadata_field_info
     )
-    
-    relevant_docs = retriever.invoke(standalone_question)
-    output = ''''''
-    for resp in relevant_docs:
-        output += f'{resp.page_content}, "\n Source : {resp.metadata["filename"]}:{resp.metadata["page"] + 1} "\n\n'
-    custom_rag_prompt = PromptTemplate.from_template(TEMPLATE)
-    return output'''
-
+    custom_rag_prompt = PromptTemplate.from_template(template)
     rag_chain_from_docs = (
-        RunnablePassthrough.assign(context=output)
+        RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
         | custom_rag_prompt
         | llm
         | StrOutputParser()
     )
-    qu=standalone_question + usq
-    llm_response = rag_chain_from_docs.invoke({'question':qu})
-    final_output = f"{standalone_question}\n\n{llm_response['answer']}"
-    
+    rag_chain_with_source = RunnableParallel(
+        {"context": retriever, "question": RunnablePassthrough()}
+    ).assign(answer=rag_chain_from_docs)
+    llm_response = rag_chain_with_source.invoke(qu)
+    final_output = llm_response['answer']
     return final_output
+
+def format_docs(docs):
+    formatted_docs = []
+    for doc in docs:
+        content = doc.page_content
+        page = doc.metadata.get('page') + 1
+        source = doc.metadata.get('filename')
+        formatted_docs.append(f"{content} Source: {source} : {page}")
+    return "\n\n".join(formatted_docs)

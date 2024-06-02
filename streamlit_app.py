@@ -9,7 +9,7 @@ qapi = st.secrets["QDRANT_API"]
 
 def main():
     
-    st.set_page_config(page_title="Social Studies RAG Assistant")
+    st.set_page_config(page_title="PDF RAG Assistant")
     st.title("Social Studies RAG Assistant")
     session_id = str(uuid.uuid4)
     if 'vectorstore' not in st.session_state:

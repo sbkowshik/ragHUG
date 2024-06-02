@@ -11,6 +11,8 @@ from langchain_core.prompts import PromptTemplate
 from langchain.chains import StuffDocumentsChain, LLMChain
 from langchain.retrievers.self_query.base import SelfQueryRetriever
 from langchain.chains.query_constructor.base import AttributeInfo
+from langchain.chains import RetrievalQA
+
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
 Use the following pieces of context to answer the question at the end.
@@ -113,19 +115,23 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         llm,
         vectorstore,
         document_content_description,
-        metadata_field_info
+        metadata_field_info,
+        verbose=True
     )
     custom_rag_prompt = PromptTemplate.from_template(template)
-    rag_chain_from_docs = (
-        RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
-        | custom_rag_prompt
-        | llm
-        | StrOutputParser()
+    rdocs=format_docs(retriever.invoke(standalone_question))
+    chain = RetrievalQA.from_chain_type(
+    llm = llm,
+    retriever = retriever,
+    return_source_documents = True,
+    chain_type_kwargs={
+        "prompt": PromptTemplate(
+            template=custom_rag_prompt,
+            input_variables=["context", "question"],
+        ),
+    }
     )
-    rag_chain_with_source = RunnableParallel(
-        {"context": retriever, "question": RunnablePassthrough()}
-    ).assign(answer=rag_chain_from_docs)
-    llm_response = rag_chain_with_source.invoke(qu)
+    llm_response = chain.invoke({"question":standalone_question,"context":rdocs})
     final_output = llm_response['answer']
     return final_output
 

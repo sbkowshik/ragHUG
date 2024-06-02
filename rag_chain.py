@@ -82,7 +82,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         repetition_penalty=1
     )
     question_generator_chain = template2 | llm | StrOutputParser()
-    generated_question = question_generator_chain.run({'question': user_query, 'chat_history': chat_history})
+    generated_question = question_generator_chain.invoke({'question': user_query, 'chat_history': chat_history})
     original_string=generated_question
     if original_string.startswith("Standalone question: "):
         original_string = original_string[len("Standalone question: "):]

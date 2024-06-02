@@ -116,7 +116,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         document_content_description,
         metadata_field_info
     )
-    llm_response=format_docs(retriever.invoke(qu))
+    llm_response="CONTEXT FROM QDRANT" + "\n \n" + format_docs(retriever.invoke(qu))
     return llm_response
 
 def format_docs(docs):
@@ -125,5 +125,5 @@ def format_docs(docs):
         content = doc.page_content
         page = doc.metadata.get('page') + 1
         source = doc.metadata.get('filename')
-        formatted_docs.append(f"{content} Source: {source} : {page}")
+        formatted_docs.append(f"{content}  [ Source: {source} : {page} ] " )
     return "\n\n".join(formatted_docs)

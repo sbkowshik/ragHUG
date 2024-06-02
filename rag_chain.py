@@ -118,7 +118,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
     )
     custom_rag_prompt = PromptTemplate.from_template(template)
     chain = (  
-    RunnablePassthrough.assign(context=format_docs((lambda x: x["question"]) | retriever)) 
+    RunnablePassthrough.assign(context=(lambda x: x["question"] | retriever)) 
     | custom_rag_prompt  
     | llm
     | StrOutputParser()  

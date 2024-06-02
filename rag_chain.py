@@ -116,8 +116,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         document_content_description,
         metadata_field_info
     )
-    chain=retriever | StrOutputParser
-    llm_response=f"Question (After Cleanup) : - {standalone_question}" + "\n \n" +"CONTEXT FROM QDRANT" + "\n \n" + format_docs(chain.invoke(qu))
+    llm_response=f"Question (After Cleanup) : - {standalone_question}" + "\n \n" +"CONTEXT FROM QDRANT" + "\n \n" + format_docs(retriever.invoke(qu))
     return llm_response
 
 def format_docs(docs):

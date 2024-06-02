@@ -81,8 +81,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         temperature=0.1,
         repetition_penalty=1
     )
-    
-    question_generator_chain = LLMChain(llm=llm, prompt=template2)
+    question_generator_chain = template2 | llm | StrOutputParser()
     generated_question = question_generator_chain.run({'question': user_query, 'chat_history': chat_history})
     original_string=generated_question
     if original_string.startswith("Standalone question: "):
@@ -117,13 +116,16 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         metadata_field_info
     )
     custom_rag_prompt = PromptTemplate.from_template(template)
-    chain = (  
-    RunnablePassthrough.assign(context=(lambda x: x["question"] | retriever)) 
-    | custom_rag_prompt  
-    | llm
-    | StrOutputParser()  
-    )  
-    llm_response = chain.invoke({"question":qu})
+    rag_chain_from_docs = (
+        RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
+        | custom_rag_prompt
+        | llm
+        | StrOutputParser()
+    )
+    rag_chain_with_source = RunnableParallel(
+        {"context": retriever, "question": RunnablePassthrough()}
+    ).assign(answer=rag_chain_from_docs)
+    llm_response = rag_chain_with_source.invoke(qu)
     final_output = llm_response['answer']
     return final_output
 

@@ -75,7 +75,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         huggingfacehub_api_token=token,
         repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
         task="text-generation",
-        max_new_tokens=1024,
+        max_new_tokens=2048,
         top_k=50,
         top_p=0.8,
         temperature=0.1,
@@ -116,7 +116,8 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         document_content_description,
         metadata_field_info
     )
-    llm_response=f"Question (After Cleanup) : - {standalone_question}" + "\n \n" +"CONTEXT FROM QDRANT" + "\n \n" + format_docs(retriever.invoke(qu))
+    chain=retriever | StrOutputParser
+    llm_response=f"Question (After Cleanup) : - {standalone_question}" + "\n \n" +"CONTEXT FROM QDRANT" + "\n \n" + format_docs(chain.invoke(qu))
     return llm_response
 
 def format_docs(docs):

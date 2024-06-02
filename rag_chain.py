@@ -116,8 +116,16 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         document_content_description,
         metadata_field_info
     )
-    llm_response=f"Question (After Cleanup) : - {standalone_question}" + "\n \n" +"CONTEXT FROM QDRANT" + "\n \n" + format_docs(retriever.invoke(qu))
-    return llm_response
+    custom_rag_prompt = PromptTemplate.from_template(template)
+    chain = (  
+    RunnablePassthrough.assign(context=format_docs((lambda x: x["question"]) | retriever)) 
+    | custom_rag_prompt  
+    | llm
+    | StrOutputParser()  
+    )  
+    llm_response = chain.invoke({"question":qu})
+    final_output = llm_response['answer']
+    return final_output
 
 def format_docs(docs):
     formatted_docs = []
@@ -125,5 +133,5 @@ def format_docs(docs):
         content = doc.page_content
         page = doc.metadata.get('page') + 1
         source = doc.metadata.get('filename')
-        formatted_docs.append(f"{content}  [ Source: {source} : {page} ] " )
+        formatted_docs.append(f"{content} Source: {source} : {page}")
     return "\n\n".join(formatted_docs)

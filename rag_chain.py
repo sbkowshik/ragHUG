@@ -83,7 +83,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         huggingfacehub_api_token=token,
         repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
         task="text-generation",
-        max_new_tokens=512,
+        max_new_tokens=2048,
         top_k=50,
         top_p=0.8,
         temperature=0.1,

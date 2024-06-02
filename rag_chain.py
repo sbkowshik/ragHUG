@@ -11,14 +11,6 @@ from langchain_core.prompts import PromptTemplate
 from langchain.chains import StuffDocumentsChain, LLMChain
 from langchain.retrievers.self_query.base import SelfQueryRetriever
 from langchain.chains.query_constructor.base import AttributeInfo
-from langchain.chains.query_constructor.base import (
-    get_query_constructor_prompt,
-    StructuredQueryOutputParser,
-)
-from langchain.retrievers.self_query.qdrant import QdrantTranslator
-
-output_parser = StructuredQueryOutputParser.from_components()
-
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
 Use the following pieces of context to answer the question at the end.
@@ -123,15 +115,6 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         vectorstore,
         document_content_description,
         metadata_field_info
-    )
-    prompt1 = get_query_constructor_prompt(document_content_description, metadata_field_info,schema_prompt=PromptTemplate(template="Generate a query with the given question. Question : {question} "),
-            input_variables=['question'])
-    output_parser = StructuredQueryOutputParser.from_components()
-    query_constructor = prompt1 | llm | output_parser
-    retriever = SelfQueryRetriever(
-    query_constructor=query_constructor,
-    vectorstore=vectorstore,
-    structured_query_translator=QdrantTranslator(),
     )
     custom_rag_prompt = PromptTemplate.from_template(template)
     rag_chain_from_docs = (

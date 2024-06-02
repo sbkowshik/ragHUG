@@ -91,7 +91,6 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
     index = original_string.find("Analyze")
     standalone_question = original_string[:index].strip() if index != -1 else original_string.strip()
     qu=standalone_question+usq
-    template = TEMPLATE
     metadata_field_info = [
         AttributeInfo(
             name="filename",
@@ -118,7 +117,6 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         metadata_field_info,
         verbose=True
     )
-    custom_rag_prompt = PromptTemplate.from_template(template)
     rdocs=format_docs(retriever.invoke(standalone_question))
     chain = RetrievalQA.from_chain_type(
     llm = llm,
@@ -126,7 +124,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
     return_source_documents = True,
     chain_type_kwargs={
         "prompt": PromptTemplate(
-            template=custom_rag_prompt,
+            template=TEMPLATE,
             input_variables=["context", "question"],
         ),
     }

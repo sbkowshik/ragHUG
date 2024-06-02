@@ -116,19 +116,8 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         document_content_description,
         metadata_field_info
     )
-    custom_rag_prompt = PromptTemplate.from_template(template)
-    rag_chain_from_docs = (
-        RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
-        | custom_rag_prompt
-        | llm
-        | StrOutputParser()
-    )
-    rag_chain_with_source = RunnableParallel(
-        {"context": retriever, "question": RunnablePassthrough()}
-    ).assign(answer=rag_chain_from_docs)
-    llm_response = rag_chain_with_source.invoke(qu)
-    final_output = llm_response['answer']
-    return final_output
+    llm_response=format_docs(retriever.invoke(qu))
+    return qu
 
 def format_docs(docs):
     formatted_docs = []

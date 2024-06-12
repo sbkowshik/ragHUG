@@ -27,7 +27,7 @@ def load_doc_text(uploaded_file,uapi):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
-    loader = UnstructuredAPIFileLoader(file_path=temp_file_path,api_key=uapi,mode="single")
+    loader = PyPDFLoader(temp_file_path,extract_images=True)
     docs = loader.load()
     for doc in docs:
         doc.metadata['filename'] = uploaded_file.name

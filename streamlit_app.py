@@ -1,6 +1,6 @@
 
 import streamlit as st
-from rag_chain import load_doc_text, determine_optimal_chunk_size, chunk_and_store_in_vector_store, process_user_input
+from rag_chain import load_pdf_text, determine_optimal_chunk_size, chunk_and_store_in_vector_store, process_user_input
 import uuid
 
 token = st.secrets["HUGGINGFACEHUB_API_TOKEN"]
@@ -28,7 +28,7 @@ def main():
             with st.spinner("Processing PDFs..."):
                 if st.session_state['source_docs']:
                     for source_doc in st.session_state['source_docs']:
-                        docs, doc_length = load_doc_text(source_doc,uapi)
+                        docs, doc_length = load_pdf_text(source_doc,uapi)
                         chunk_size, chunk_overlap = determine_optimal_chunk_size(doc_length)
                         st.session_state['vectorstore'] = chunk_and_store_in_vector_store(
                             docs, chunk_size, chunk_overlap, token=token, qapi=qapi, qurl=qurl

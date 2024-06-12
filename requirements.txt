@@ -2,6 +2,7 @@ langchain
 streamlit
 chromadb
 pypdf
+rapidocr-onnxruntime==1.3.22
 langchain 
 langchain_community
 openai 
@@ -16,4 +17,3 @@ transformers
 qdrant-client
 lark
 unstructured
-rapidocr-onnxruntime

@@ -7,6 +7,7 @@ token = st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 qurl = st.secrets["QDRANT_URL"]
 qapi = st.secrets["QDRANT_API"]
 uapi = st.secrets["UNST_API"]
+
 def main():
     
     st.set_page_config(page_title="RAG Assistant")
@@ -43,7 +44,7 @@ def main():
     user_query = st.chat_input("Ask a question")
     
     if user_query and st.session_state['vectorstore']:
-        usq = ". \t You must mention the file name along with page numbers of the relevant information only from the METADATA in this format [File Name : Page Numbers]"
+        usq = ". \t You must mention the file name along with page numbers of the relevant information only from the METADATA in this format [File Name]"
         with st.chat_message("user"):
             st.write(user_query)
         st.session_state['messages'].append({"role": "user", "content": user_query})

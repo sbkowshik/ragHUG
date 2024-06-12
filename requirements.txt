@@ -16,3 +16,4 @@ transformers
 qdrant-client
 lark
 unstructured
+rapidocr-onnxruntime

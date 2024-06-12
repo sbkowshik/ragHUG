@@ -28,7 +28,7 @@ def main():
             with st.spinner("Processing PDFs..."):
                 if st.session_state['source_docs']:
                     for source_doc in st.session_state['source_docs']:
-                        docs, doc_length = load_pdf_text(source_doc,uapi)
+                        docs, doc_length = load_pdf_text(source_doc)
                         chunk_size, chunk_overlap = determine_optimal_chunk_size(doc_length)
                         st.session_state['vectorstore'] = chunk_and_store_in_vector_store(
                             docs, chunk_size, chunk_overlap, token=token, qapi=qapi, qurl=qurl

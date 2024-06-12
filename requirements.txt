@@ -15,3 +15,5 @@ huggingface_hub
 transformers
 qdrant-client
 lark
+llama-index
+llama-parse

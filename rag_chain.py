@@ -9,6 +9,7 @@ from langchain_community.llms import HuggingFaceEndpoint
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import PromptTemplate
 from langchain.chains import StuffDocumentsChain, LLMChain
+from langchain_community.document_loaders import UnstructuredAPIFileLoader
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
 Use the following pieces of context to answer the question at the end.
@@ -22,12 +23,11 @@ Question: {question}
 
 Answer:"""
 
-def load_pdf_text(uploaded_file):
+def load_doc_text(uploaded_file,uapi):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
-
-    loader = PyPDFLoader(temp_file_path)
+    loader = UnstructuredAPIFileLoader(file_path=tenp_file_path,api_key=uapi)
     docs = loader.load()
     for doc in docs:
         doc.metadata['filename'] = uploaded_file.name

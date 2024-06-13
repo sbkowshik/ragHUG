@@ -110,7 +110,6 @@ def format_docs(docs):
     formatted_docs = []
     for doc in docs:
         content = doc.page_content
-        page = doc.metadata.get('page') + 1
         source = doc.metadata.get('filename')
-        formatted_docs.append(f"{content} Source: {source} : {page}")
+        formatted_docs.append(f"{content} Source: {source}")
     return "\n\n".join(formatted_docs)

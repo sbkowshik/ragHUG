@@ -18,3 +18,4 @@ qdrant-client
 lark
 unstructured
 pymupdf
+pdfminer.six

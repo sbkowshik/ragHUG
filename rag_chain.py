@@ -9,8 +9,7 @@ from langchain_community.llms import HuggingFaceEndpoint
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import PromptTemplate
 from langchain.chains import StuffDocumentsChain, LLMChain
-from llama_index.readers.nougat_ocr import PDFNougatOCR
-from langchain_community.document_loaders import AmazonTextractPDFLoader
+from langchain_community.document_loaders import PyMuPDFLoader
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing textbooks.
 Use the following pieces of context to answer the question at the end.
@@ -28,7 +27,7 @@ def load_doc_text(uploaded_file,upi):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
-    loader=AmazonTextractPDFLoader(temp_file_path)
+    loader=PyMuPDFLoader(temp_file_path)
     docs=loader.load()
     print(docs)
     for doc in docs:

@@ -11,6 +11,9 @@ from langchain_core.prompts import PromptTemplate
 from langchain.chains import StuffDocumentsChain, LLMChain
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.document_loaders import PDFMinerLoader
+from langchain_community.document_loaders import UnstructuredAPIFileLoader
+
+
 
 TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing textbooks.
 Use the following pieces of context to answer the question at the end.
@@ -28,7 +31,7 @@ def load_doc_text(uploaded_file,upi):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
-    loader=PDFMinerLoader(temp_file_path)
+    loader = UnstructuredAPIFileLoader(temp_file_path,api=upi, mode="elements")
     docs=loader.load()
     print(docs)
     for doc in docs:
@@ -110,6 +113,7 @@ def format_docs(docs):
     formatted_docs = []
     for doc in docs:
         content = doc.page_content
+        page = doc.metadata.get('page') + 1
         source = doc.metadata.get('filename')
-        formatted_docs.append(f"{content} Source: {source}")
+        formatted_docs.append(f"{content} Source: {source} : {page}")
     return "\n\n".join(formatted_docs)

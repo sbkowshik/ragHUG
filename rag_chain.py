@@ -31,7 +31,7 @@ def load_doc_text(uploaded_file,upi):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
-    loader = UnstructuredAPIFileLoader(temp_file_path,api=upi, mode="elements")
+    loader = UnstructuredAPIFileLoader(temp_file_path,api_key=upi, mode="elements")
     docs=loader.load()
     print(docs)
     for doc in docs:

@@ -18,3 +18,4 @@ qdrant-client
 lark
 unstructured
 llama-index-readers-nougat-ocr
+amazon-textract-caller

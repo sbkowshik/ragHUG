@@ -28,10 +28,10 @@ def load_doc_text(uploaded_file,upi):
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
     reader = PDFNougatOCR()
-    docs = reader.load_data(temp_file_path)
+    docs1 = reader.load_data(temp_file_path)
     docs = [
         doc.to_langchain_format()
-        for doc in docs
+        for doc in docs1
         ]
     for doc in docs:
         doc.metadata['filename'] = uploaded_file.name

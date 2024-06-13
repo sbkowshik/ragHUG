@@ -17,3 +17,4 @@ transformers
 qdrant-client
 lark
 unstructured
+pymupdf

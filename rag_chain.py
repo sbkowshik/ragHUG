@@ -15,9 +15,9 @@ from langchain_community.document_loaders import UnstructuredAPIFileLoader
 
 
 
-TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing textbooks.
+TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing documents.
 Use the following pieces of context to answer the question at the end.
-MAKE SURE YOU MENTION THE NAME OF THE FILE ALONG WITH PAGE NUMBERS OF INFORMATION FROM THE METADATA AT THE END OF YOUR RESPONSE EVERYTIME IN THIS FORMAT [File Name : Page Number].
+MAKE SURE YOU MENTION THE NAME OF THE FILE ALONG WITH PAGE NUMBERS (If it exists) OF INFORMATION FROM THE METADATA AT THE END OF YOUR RESPONSE EVERYTIME IN THIS FORMAT [File Name : Page Number].
 If you don't know the answer, just say that you don't know; don't try to make up an answer.
 Keep the answer as concise as possible.
 
@@ -113,7 +113,10 @@ def format_docs(docs):
     formatted_docs = []
     for doc in docs:
         content = doc.page_content
-        page = doc.metadata.get('page_number')
         source = doc.metadata.get('filename')
-        formatted_docs.append(f"{content} Source: {source} : {page}")
+        if doc.metadata.get('page_number') :
+            page = doc.metadata.get('page_number')
+            formatted_docs.append(f"{content} Source: {source} : {page}")
+        else:
+            formatted_docs.append(f"{content} Source: {source}")
     return "\n\n".join(formatted_docs)

@@ -29,8 +29,6 @@ def load_doc_text(uploaded_file,upi):
         temp_file_path = temp_file.name
     reader = PDFNougatOCR()
     docs = reader.load_data(temp_file_path)
-    for doc in docs:
-        doc.metadata['filename'] = uploaded_file.name
     total_text = "\n".join(doc.page_content for doc in docs)
     doc_length = len(total_text)
 
@@ -92,7 +90,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
     template = TEMPLATE
     custom_rag_prompt = PromptTemplate.from_template(template)
     rag_chain_from_docs = (
-        RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
+        RunnablePassthrough.assign(context=(lambda x:(x["context"])))
         | custom_rag_prompt
         | llm
         | StrOutputParser()
@@ -104,11 +102,3 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
     final_output = llm_response['answer']
     return final_output
 
-def format_docs(docs):
-    formatted_docs = []
-    for doc in docs:
-        content = doc.page_content
-        page = doc.metadata.get('page') + 1
-        source = doc.metadata.get('filename')
-        formatted_docs.append(f"{content} Source: {source} : {page}")
-    return "\n\n".join(formatted_docs)

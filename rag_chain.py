@@ -18,9 +18,15 @@ from langchain_core.prompts import PromptTemplate
 from langchain.retrievers.document_compressors import DocumentCompressorPipeline
 from langchain_community.document_transformers import EmbeddingsRedundantFilter
 from langchain.retrievers import ContextualCompressionRetriever
+from langchain_community.document_loaders import UnstructuredExcelLoader
+from langchain_community.document_loaders import UnstructuredHTMLLoader
 from langchain.retrievers.document_compressors import LLMChainExtractor
 from langchain.retrievers import EnsembleRetriever
 from langchain_community.retrievers import BM25Retriever
+from langchain_community.document_loaders.csv_loader import CSVLoader
+from langchain_community.document_loaders import JSONLoader
+
+
 
 from pathlib import Path
 
@@ -44,11 +50,21 @@ def load_doc_text(uploaded_file, upi):
     with tempfile.NamedTemporaryFile(delete=False,suffix=fe) as temp_file:
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
-
-    if fe=='.pdf':
+    if fe=='.txt':
+        loader=TextLoader(temp_file_path)
+    elif fe=='.pdf':
          loader = PyPDFLoader(temp_file_path)
-    else:
-        loader = UnstructuredAPIFileLoader(file_path=temp_file_path,api_key=upi,strategy='fast',mode='elements')
+    elif fe=='csv':
+        loader=CSVLoader(temp_file_path)
+    elif fe=='.xlsx':
+        loader=UnstructuredExcelLoader(temp_file_path)
+    elif fe=='.json':
+        loader = JSONLoader(
+        file_path=temp_file_path,
+        jq_schema='.messages[].content',
+        text_content=False)
+    elif fe=='.html':
+        loader=UnstructuredHTMLLoader(temp_file_path)
     docs = loader.load()
     for doc in docs:
         doc.metadata['filename'] = uploaded_file.name
@@ -134,8 +150,8 @@ def format_docs(docs):
     for doc in docs:
         content = doc.page_content
         source = doc.metadata.get('filename')
-        if doc.metadata.get('page_number') :
-            page = doc.metadata.get('page_number') + 1
+        if doc.metadata.get('page') :
+            page = doc.metadata.get('page') + 1
             formatted_docs.append(f"{content} Source: {source} : {page}")
         else:
             formatted_docs.append(f"{content} Source: {source}")

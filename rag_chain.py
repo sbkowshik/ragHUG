@@ -133,8 +133,8 @@ def format_docs(docs):
     for doc in docs:
         content = doc.page_content
         source = doc.metadata.get('filename')
-        if doc.metadata.get('page_number') :
-            page = doc.metadata.get('page_number')
+        if doc.metadata.get('page') :
+            page = doc.metadata.get('page') + 1
             formatted_docs.append(f"{content} Source: {source} : {page}")
         else:
             formatted_docs.append(f"{content} Source: {source}")

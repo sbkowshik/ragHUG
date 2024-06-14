@@ -36,8 +36,9 @@ def load_doc_text(uploaded_file, upi):
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
         
-    loader = UnstructuredFileLoader(
+    loader = UnstructuredAPIFileLoader(
         file_path=temp_file_path,
+        api_key=upi,
         mode="elements",
         strategy='fast',
     )

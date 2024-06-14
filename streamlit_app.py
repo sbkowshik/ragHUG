@@ -17,7 +17,7 @@ def main():
         st.session_state['vectorstore'] = None
 
     if 'bmv' not in st.session_state:
-        st.session_state['bmv'] = None
+        st.session_state['splits'] = None
         
     if 'messages' not in st.session_state:
         st.session_state['messages'] = []
@@ -56,7 +56,7 @@ def main():
             ch.append((msg['role'], msg['content']))
         chat_history = ch
         with st.chat_message("assistant"):
-            llm_answer = process_user_input(user_query, usq, st.session_state['vectorstore'], token, chat_history,st.session_state['bmv'])
+            llm_answer = process_user_input(user_query, usq, st.session_state['vectorstore'], token, chat_history,st.session_state['splits'])
             st.write(llm_answer)
         st.session_state['messages'].append({"role": "assistant", "content": llm_answer})
     elif user_query:

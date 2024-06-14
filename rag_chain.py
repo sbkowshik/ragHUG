@@ -80,15 +80,14 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
         documents=splits, embedding=embeddings, url=qurl, api_key=qapi, collection_name='MainTest'
     )
 
-    bmv= BM25Retriever.from_documents(documents=splits)
-    bmv.k = 2
+    return vectorstore,splits
 
-    return vectorstore,bmv
-
-def process_user_input(user_query,usq, vectorstore, token, chat_history,bmv):
+def process_user_input(user_query,usq, vectorstore, token, chat_history,splits):
     re = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
+    bm=BM25Retriever.from_documents(splits)
+    bm.k = 2
     ensemble_retriever = EnsembleRetriever(
-    retrievers=[bmv, re], weights=[0.5, 0.5]
+    retrievers=[bm, re], weights=[0.5, 0.5]
 )
     template2 = PromptTemplate.from_template(
     """Analyze the chat history and follow up question which might reference context in the chat history, If the question is direct which doesnt refer to the chat history just return as it is , understand what is the user exactly asking, into  

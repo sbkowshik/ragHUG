@@ -11,7 +11,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain_core.prompts import PromptTemplate
 from langchain.chains import StuffDocumentsChain, LLMChain
 from langchain_community.document_loaders import UnstructuredAPIFileLoader
-from langchain_community.document_loaders import UnstructuredFileLoader
+from langchain_community.document_loaders import UnstructuredPDFLoader
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain.output_parsers import PydanticOutputParser
 from langchain_core.prompts import PromptTemplate
@@ -47,7 +47,7 @@ def load_doc_text(uploaded_file, upi):
     if fe=='.txt':
         loader=TextLoader(temp_file_path)
     elif fe=='.pdf':
-         loader = PyPDFLoader(temp_file_path,extract_images=True)
+         loader = UnstructuredPDFLoader(temp_file_path,mode='elements',strategy='fast')
     
     docs = loader.load()
     for doc in docs:

@@ -34,7 +34,7 @@ def main():
                         docs, doc_length = load_doc_text(source_doc,uapi)
                         chunk_size, chunk_overlap = determine_optimal_chunk_size(doc_length)
                         st.session_state['vectorstore'], st.session_state['splits'] = chunk_and_store_in_vector_store(
-                            docs, chunk_size, chunk_overlap, token=token, qapi=qapi, qurl=qurl
+                            docs, chunk_size, chunk_overlap, token=token, qapi=qapi, qurl=qurl , sid=session_id
                         )
                     st.success("DOCs Processed")
                 else:

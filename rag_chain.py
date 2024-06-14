@@ -83,7 +83,7 @@ def determine_optimal_chunk_size(doc_length):
         chunk_overlap = 500
     return chunk_size, chunk_overlap
 
-def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl, qapi):
+def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl, qapi,sid):
     embeddings = HuggingFaceInferenceAPIEmbeddings(
         api_key=token, model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
@@ -92,7 +92,7 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
     splits = text_splitter.split_documents(docs)
 
     vectorstore = Qdrant.from_documents(
-        documents=splits, embedding=embeddings, url=qurl, api_key=qapi, collection_name='MainTest'
+        documents=splits, embedding=embeddings, url=qurl, api_key=qapi, collection_name=sid
     )
 
     return vectorstore,splits

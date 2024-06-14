@@ -27,12 +27,19 @@ Question: {question}
 
 Answer:"""
 
-def load_doc_text(uploaded_file,upi):
+def load_doc_text(uploaded_file, upi):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
-    loader = UnstructuredAPIFileIOLoader(temp_file_path,api_key=upi, mode="elements",strategy='fast')
-    docs=loader.load()
+        
+    loader = UnstructuredAPIFileIOLoader(
+        file=temp_file_path,
+        api_key=upi,
+        mode="elements",
+        strategy='fast',
+        metadata_filenames=[uploaded_file.name]
+    )
+    docs = loader.load()
     print(docs)
     for doc in docs:
         doc.metadata['filename'] = uploaded_file.name

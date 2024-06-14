@@ -105,7 +105,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
     Provide these alternative questions separated by newlines.
     Original question: {question}""",
 )
-    output_parser = LineListOutputParser()
+    output_parser = StrOutputParser()
     llm_chain = LLMChain(llm=llm, prompt=QUERY_PROMPT, output_parser=output_parser)
     retriever = MultiQueryRetriever(
     retriever=re,llm_chain=llm_chain, parser_key="lines"

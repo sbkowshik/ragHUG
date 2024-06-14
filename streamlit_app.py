@@ -16,7 +16,7 @@ def main():
     if 'vectorstore' not in st.session_state:
         st.session_state['vectorstore'] = None
 
-    if 'bmv' not in st.session_state:
+    if 'splits' not in st.session_state:
         st.session_state['splits'] = None
         
     if 'messages' not in st.session_state:

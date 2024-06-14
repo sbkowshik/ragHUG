@@ -11,7 +11,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain.chains import StuffDocumentsChain, LLMChain
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.document_loaders import PDFMinerLoader
-from langchain_community.document_loaders import UnstructuredAPIFileIOLoader
+from langchain_community.document_loaders import UnstructuredAPIFileLoader
 
 
 
@@ -32,7 +32,7 @@ def load_doc_text(uploaded_file, upi):
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
         
-    loader = UnstructuredAPIFileIOLoader(
+    loader = UnstructuredAPIFileLoader(
         file=[temp_file_path],
         api_key=upi,
         mode="elements",

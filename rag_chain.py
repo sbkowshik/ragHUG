@@ -30,7 +30,7 @@ Question: {question}
 Answer:"""
 
 def load_doc_text(uploaded_file, upi):
-    fe = Path(uploaded_file.name).suffix[1:]
+    fe ='.'+Path(uploaded_file.name).suffix[1:]
     with tempfile.NamedTemporaryFile(delete=False,suffix=fe) as temp_file:
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name

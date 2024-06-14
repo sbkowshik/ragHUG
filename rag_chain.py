@@ -10,6 +10,7 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import PromptTemplate
 from langchain.chains import StuffDocumentsChain, LLMChain
 from langchain_community.document_loaders import UnstructuredAPIFileLoader
+from langchain_community.document_loaders import UnstructuredFileLoader
 from langchain.retrievers.multi_query import MultiQueryRetriever
 
 from pathlib import Path
@@ -35,9 +36,8 @@ def load_doc_text(uploaded_file, upi):
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
         
-    loader = UnstructuredAPIFileLoader(
+    loader = UnstructuredFileLoader(
         file_path=temp_file_path,
-        api_key=upi,
         mode="elements",
         strategy='fast',
     )

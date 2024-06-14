@@ -25,7 +25,7 @@ def main():
         st.session_state['source_docs'] = st.file_uploader("Upload documents", accept_multiple_files=True)
         
         if st.button("Submit"):
-            with st.spinner("Processing PDFs..."):
+            with st.spinner("Processing DOCs..."):
                 if st.session_state['source_docs']:
                     for source_doc in st.session_state['source_docs']:
                         docs, doc_length = load_doc_text(source_doc,uapi)
@@ -33,9 +33,9 @@ def main():
                         st.session_state['vectorstore'] = chunk_and_store_in_vector_store(
                             docs, chunk_size, chunk_overlap, token=token, qapi=qapi, qurl=qurl
                         )
-                    st.success("PDFs Processed")
+                    st.success("DOCs Processed")
                 else:
-                    st.info("Please upload PDFs")
+                    st.info("Please upload documents")
     
     for message in st.session_state['messages']:
         with st.chat_message(message["role"]):

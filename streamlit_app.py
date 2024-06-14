@@ -30,7 +30,7 @@ def main():
                     for source_doc in st.session_state['source_docs']:
                         docs, doc_length = load_doc_text(source_doc,uapi)
                         chunk_size, chunk_overlap = determine_optimal_chunk_size(doc_length)
-                        st.session_state['vectorstore'] = chunk_and_store_in_vector_store(
+                        st.session_state['vectorstore'], bmv = chunk_and_store_in_vector_store(
                             docs, chunk_size, chunk_overlap, token=token, qapi=qapi, qurl=qurl
                         )
                     st.success("DOCs Processed")
@@ -53,7 +53,7 @@ def main():
             ch.append((msg['role'], msg['content']))
         chat_history = ch
         with st.chat_message("assistant"):
-            llm_answer = process_user_input(user_query, usq, st.session_state['vectorstore'], token, chat_history)
+            llm_answer = process_user_input(user_query, usq, st.session_state['vectorstore'], token, chat_history,bmv)
             st.write(llm_answer)
         st.session_state['messages'].append({"role": "assistant", "content": llm_answer})
     elif user_query:

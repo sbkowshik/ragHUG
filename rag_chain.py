@@ -19,6 +19,8 @@ from langchain.retrievers.document_compressors import DocumentCompressorPipeline
 from langchain_community.document_transformers import EmbeddingsRedundantFilter
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import LLMChainExtractor
+from langchain.retrievers import EnsembleRetriever
+from langchain_community.retrievers import BM25Retriever
 
 from pathlib import Path
 
@@ -77,10 +79,17 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
     vectorstore = Qdrant.from_documents(
         documents=splits, embedding=embeddings, url=qurl, api_key=qapi, collection_name='MainTest'
     )
-    return vectorstore
 
-def process_user_input(user_query,usq, vectorstore, token, chat_history):
+    bmv= BM25Retriever.from_documents(documents=splits, embedding=embeddings, url=qurl, api_key=qapi, collection_name='MainTest')
+    bmv.k = 2
+
+    return vectorstore,bmv
+
+def process_user_input(user_query,usq, vectorstore, token, chat_history,bmv):
     re = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
+    ensemble_retriever = EnsembleRetriever(
+    retrievers=[bmv, re], weights=[0.5, 0.5]
+)
     template2 = PromptTemplate.from_template(
     """Analyze the chat history and follow up question which might reference context in the chat history, If the question is direct which doesnt refer to the chat history just return as it is , understand what is the user exactly asking, into  
     a standalone question which can be understood. Chat History: {chat_history}
@@ -114,7 +123,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         | StrOutputParser()
     )
     rag_chain_with_source = RunnableParallel(
-        {"context": re, "question": RunnablePassthrough()}
+        {"context": ensemble_retriever, "question": RunnablePassthrough()}
     ).assign(answer=rag_chain_from_docs)
     llm_response = rag_chain_with_source.invoke(qu)
     final_output = llm_response['answer']

@@ -21,7 +21,7 @@ Question: {question}
 
 Answer:"""
 
-def load_doc_text(uploaded_file):
+def load_doc_text(uploaded_file,upi):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name

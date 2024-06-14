@@ -9,10 +9,9 @@ from langchain_community.llms import HuggingFaceEndpoint
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import PromptTemplate
 from langchain.chains import StuffDocumentsChain, LLMChain
-from langchain_community.document_loaders import PyMuPDFLoader
-from langchain_community.document_loaders import PDFMinerLoader
 from langchain_community.document_loaders import UnstructuredAPIFileLoader
-from langchain_community.document_loaders import UnstructuredFileLoader
+from langchain.retrievers.multi_query import MultiQueryRetriever
+
 from pathlib import Path
 
 
@@ -77,8 +76,10 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
     return vectorstore
 
 def process_user_input(user_query,usq, vectorstore, token, chat_history):
-    retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"score_threshold": 0.5,"k": 6})
-    
+    re = vectorstore.as_retriever()
+    retriever = MultiQueryRetriever.from_llm(
+    retriever=re, llm=llm
+)
     template2 = PromptTemplate.from_template(
     """Analyze the chat history and follow up question which might reference context in the chat history, If the question is direct which doesnt refer to the chat history just return as it is , understand what is the user exactly asking, into  
     a standalone question which can be understood. Chat History: {chat_history}

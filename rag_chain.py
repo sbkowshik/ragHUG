@@ -77,9 +77,7 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
 
 def process_user_input(user_query,usq, vectorstore, token, chat_history):
     re = vectorstore.as_retriever()
-    retriever = MultiQueryRetriever.from_llm(
-    retriever=re, llm=llm
-)
+    
     template2 = PromptTemplate.from_template(
     """Analyze the chat history and follow up question which might reference context in the chat history, If the question is direct which doesnt refer to the chat history just return as it is , understand what is the user exactly asking, into  
     a standalone question which can be understood. Chat History: {chat_history}
@@ -96,7 +94,9 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         temperature=0.1,
         repetition_penalty=1
     )
-    
+    retriever = MultiQueryRetriever.from_llm(
+    retriever=re, llm=llm
+)
     question_generator_chain = LLMChain(llm=llm, prompt=template2)
     generated_question = question_generator_chain.run({'question': user_query, 'chat_history': chat_history})
     original_string=generated_question

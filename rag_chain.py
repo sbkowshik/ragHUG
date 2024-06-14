@@ -12,6 +12,8 @@ from langchain.chains import StuffDocumentsChain, LLMChain
 from langchain_community.document_loaders import UnstructuredAPIFileLoader
 from langchain_community.document_loaders import UnstructuredFileLoader
 from langchain.retrievers.multi_query import MultiQueryRetriever
+from langchain.output_parsers import PydanticOutputParser
+from langchain_core.prompts import PromptTemplate
 
 from pathlib import Path
 
@@ -94,8 +96,19 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         temperature=0.1,
         repetition_penalty=1
     )
-    retriever = MultiQueryRetriever.from_llm(
-    retriever=re, llm=llm
+    QUERY_PROMPT = PromptTemplate(
+    input_variables=["question"],
+    template="""You are an AI language model assistant. Your task is to generate five 
+    different versions of the given user question to retrieve relevant documents from a vector 
+    database. By generating multiple perspectives on the user question, your goal is to help
+    the user overcome some of the limitations of the distance-based similarity search. 
+    Provide these alternative questions separated by newlines.
+    Original question: {question}""",
+)
+    output_parser = LineListOutputParser()
+    llm_chain = LLMChain(llm=llm, prompt=QUERY_PROMPT, output_parser=output_parser)
+    retriever = MultiQueryRetriever(
+    retriever=re,llm_chain=llm_chain, parser_key="lines"
 )
     question_generator_chain = LLMChain(llm=llm, prompt=template2)
     generated_question = question_generator_chain.run({'question': user_query, 'chat_history': chat_history})

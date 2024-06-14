@@ -82,7 +82,7 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
     return vectorstore
 
 def process_user_input(user_query,usq, vectorstore, token, chat_history):
-    re = vectorstore.as_retriever()
+    re = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
     
     template2 = PromptTemplate.from_template(
     """Analyze the chat history and follow up question which might reference context in the chat history, If the question is direct which doesnt refer to the chat history just return as it is , understand what is the user exactly asking, into  

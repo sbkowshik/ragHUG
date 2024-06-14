@@ -80,7 +80,7 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
         documents=splits, embedding=embeddings, url=qurl, api_key=qapi, collection_name='MainTest'
     )
 
-    bmv= BM25Retriever.from_documents(documents=splits, embedding=embeddings, url=qurl, api_key=qapi, collection_name='MainTest')
+    bmv= BM25Retriever.from_documents(documents=splits)
     bmv.k = 2
 
     return vectorstore,bmv

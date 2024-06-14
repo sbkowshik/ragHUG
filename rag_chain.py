@@ -44,11 +44,11 @@ def load_doc_text(uploaded_file, upi):
     with tempfile.NamedTemporaryFile(delete=False,suffix=fe) as temp_file:
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
-    if fe=='.txt':
-        loader=TextLoader(temp_file_path)
-    elif fe=='.pdf':
-         loader = UnstructuredPDFLoader(temp_file_path,mode='elements',strategy='fast')
-    
+    #if fe=='.txt':
+        #loader=TextLoader(temp_file_path)
+    #elif fe=='.pdf':
+         #loader = UnstructuredPDFLoader(temp_file_path,mode='elements',strategy='fast')
+    loader = UnstructuredAPIFileLoader(file_path=temp_file_path,api_key=upi,strategy='fast')
     docs = loader.load()
     for doc in docs:
         doc.metadata['filename'] = uploaded_file.name

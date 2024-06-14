@@ -14,6 +14,10 @@ from langchain_community.document_loaders import UnstructuredFileLoader
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain.output_parsers import PydanticOutputParser
 from langchain_core.prompts import PromptTemplate
+from langchain.retrievers.document_compressors import DocumentCompressorPipeline
+from langchain_community.document_transformers import EmbeddingsRedundantFilter
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import LLMChainExtractor
 
 from pathlib import Path
 
@@ -95,20 +99,10 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         temperature=0.1,
         repetition_penalty=1
     )
-    QUERY_PROMPT = PromptTemplate(
-    input_variables=["question"],
-    template="""You are an AI language model assistant. Your task is to generate five 
-    different versions of the given user question to retrieve relevant documents from a vector 
-    database. By generating multiple perspectives on the user question, your goal is to help
-    the user overcome some of the limitations of the distance-based similarity search. 
-    Provide these alternative questions separated by newlines.
-    Original question: {question}""",
-)
-    output_parser = StrOutputParser()
-    llm_chain = LLMChain(llm=llm, prompt=QUERY_PROMPT, output_parser=output_parser)
-    retriever = MultiQueryRetriever(
-    retriever=re,llm_chain=llm_chain, parser_key="lines"
-)
+    compressor = LLMChainExtractor.from_llm(llm)
+    compression_retriever = ContextualCompressionRetriever(
+    base_compressor=compressor, base_retriever=re
+    )
     question_generator_chain = LLMChain(llm=llm, prompt=template2)
     generated_question = question_generator_chain.run({'question': user_query, 'chat_history': chat_history})
     original_string=generated_question
@@ -126,7 +120,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         | StrOutputParser()
     )
     rag_chain_with_source = RunnableParallel(
-        {"context": retriever, "question": RunnablePassthrough()}
+        {"context": compression_retriever, "question": RunnablePassthrough()}
     ).assign(answer=rag_chain_from_docs)
     llm_response = rag_chain_with_source.invoke(qu)
     final_output = llm_response['answer']

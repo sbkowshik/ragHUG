@@ -12,6 +12,7 @@ from langchain.chains import StuffDocumentsChain, LLMChain
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.document_loaders import PDFMinerLoader
 from langchain_community.document_loaders import UnstructuredAPIFileLoader
+from langchain_community.document_loaders import UnstructuredFileLoader
 
 
 
@@ -32,12 +33,10 @@ def load_doc_text(uploaded_file, upi):
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
         
-    loader = UnstructuredAPIFileLoader(
-        file=[temp_file_path],
-        api_key=upi,
+    loader = UnstructuredFileLoader(
+        file=temp_file_path,
         mode="elements",
         strategy='fast',
-        metadata_filenames=[uploaded_file.name]
     )
     docs = loader.load()
     print(docs)

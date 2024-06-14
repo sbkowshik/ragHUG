@@ -33,7 +33,7 @@ def load_doc_text(uploaded_file, upi):
         temp_file_path = temp_file.name
         
     loader = UnstructuredAPIFileIOLoader(
-        file=temp_file_path,
+        file=[temp_file_path],
         api_key=upi,
         mode="elements",
         strategy='fast',

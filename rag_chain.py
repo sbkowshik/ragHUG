@@ -14,6 +14,8 @@ from langchain_community.document_loaders import UnstructuredFileLoader
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain.output_parsers import PydanticOutputParser
 from langchain_core.prompts import PromptTemplate
+import logging
+
 
 from pathlib import Path
 
@@ -69,13 +71,38 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
         api_key=token, model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
 
+    # Initialize the text splitter
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    
+    # Split documents into smaller chunks
     splits = text_splitter.split_documents(docs)
+    
+    # Debug: Output the number of splits and first few splits
+    logging.debug(f"Number of splits: {len(splits)}")
+    logging.debug(f"First few splits: {splits[:3]}")
 
+    # Get embeddings for a sample text to determine vector size
+    sample_texts = [split.page_content for split in splits[:1]]
+    partial_embeddings = embeddings.embed_documents(sample_texts)
+    
+    # Debug: Output the partial embeddings
+    logging.debug(f"Partial embeddings: {partial_embeddings}")
+
+    if not partial_embeddings:
+        raise ValueError("Embeddings are empty. Please check the embedding function and input texts.")
+    
+    vector_size = len(partial_embeddings[0])
+    
+    # Debug: Output the vector size
+    logging.debug(f"Vector size: {vector_size}")
+    
+    # Store splits in Qdrant vector store
     vectorstore = Qdrant.from_documents(
         documents=splits, embedding=embeddings, url=qurl, api_key=qapi, collection_name='MainTest'
     )
+
     return vectorstore
+
 
 def process_user_input(user_query,usq, vectorstore, token, chat_history):
     re = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})

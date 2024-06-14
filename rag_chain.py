@@ -8,44 +8,25 @@ from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_community.llms import HuggingFaceEndpoint
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import PromptTemplate
-from langchain.chains import StuffDocumentsChain, LLMChain
-from langchain_community.document_loaders import UnstructuredAPIFileLoader
-from langchain_community.document_loaders import UnstructuredFileLoader
-from langchain.retrievers.multi_query import MultiQueryRetriever
-from langchain.output_parsers import PydanticOutputParser
-from langchain_core.prompts import PromptTemplate
-import logging
 
-
-from pathlib import Path
-
-
-
-TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing documents.
-Use the following pieces of context to answer the question at the end.
-You should only answer from the context given and NOTHING ELSE.
-MAKE SURE YOU MENTION THE NAME OF THE FILE ALONG WITH PAGE NUMBERS only If it exists OF INFORMATION FROM THE METADATA AT THE END OF YOUR RESPONSE EVERYTIME IN THIS FORMAT [File Name : Page Number (Optional)].
+TEMPLATE = """You're TextBook-Assistant. You're an expert in analyzing history and economics textbooks.
+refer to the context and chat history and from that you build a context and history aware answer to the question at the end.
+MAKE SURE YOU MENTION THE NAME OF THE FILE ALONG WITH PAGE NUMBERS OF INFORMATION FROM THE METADATA AT THE END OF YOUR RESPONSE EVERYTIME IN THIS FORMAT [File Name : Page Number].
 If you don't know the answer, just say that you don't know; don't try to make up an answer.
-Keep the answer as concise as possible.
+Use three sentences maximum and keep the answer as concise as possible.
 
-{context}
-
+Chat History: {chat_history}
+Context: {context}
 Question: {question}
 
 Answer:"""
 
-def load_doc_text(uploaded_file, upi):
-    fe ='.'+Path(uploaded_file.name).suffix[1:]
-    with tempfile.NamedTemporaryFile(delete=False,suffix=fe) as temp_file:
+def load_pdf_text(uploaded_file):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
-        
-    loader = UnstructuredAPIFileLoader(
-        file_path=temp_file_path,
-        api_key=upi,
-        mode="elements",
-        strategy='fast',
-    )
+
+    loader = PyPDFLoader(temp_file_path)
     docs = loader.load()
     for doc in docs:
         doc.metadata['filename'] = uploaded_file.name
@@ -71,48 +52,20 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
         api_key=token, model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
 
-    # Initialize the text splitter
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    
-    # Split documents into smaller chunks
     splits = text_splitter.split_documents(docs)
-    
-    # Debug: Output the number of splits and first few splits
-    logging.debug(f"Number of splits: {len(splits)}")
-    logging.debug(f"First few splits: {splits[:3]}")
 
-    # Get embeddings for a sample text to determine vector size
-    sample_texts = [split.page_content for split in splits[:1]]
-    partial_embeddings = embeddings.embed_documents(sample_texts)
-    
-    # Debug: Output the partial embeddings
-    logging.debug(f"Partial embeddings: {partial_embeddings}")
-
-    if not partial_embeddings:
-        raise ValueError("Embeddings are empty. Please check the embedding function and input texts.")
-    
-    vector_size = len(partial_embeddings[0])
-    
-    # Debug: Output the vector size
-    logging.debug(f"Vector size: {vector_size}")
-    
-    # Store splits in Qdrant vector store
     vectorstore = Qdrant.from_documents(
-        documents=splits, embedding=embeddings, url=qurl, api_key=qapi, collection_name='MainTest'
+        documents=splits, embedding=embeddings, url=qurl, api_key=qapi, collection_name='test1234'
     )
-
     return vectorstore
 
+def process_user_input(user_query, vectorstore, token, chat_history):
+    retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
+    relevant_docs = retriever.get_relevant_documents(user_query)
 
-def process_user_input(user_query,usq, vectorstore, token, chat_history):
-    re = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
-    
-    template2 = PromptTemplate.from_template(
-    """Analyze the chat history and follow up question which might reference context in the chat history, If the question is direct which doesnt refer to the chat history just return as it is , understand what is the user exactly asking, into  
-    a standalone question which can be understood. Chat History: {chat_history}
-    Follow up question: {question}
-    YOUR FINAL OUTPUT SHOULD JUST BE THE STANDALONE QUESTION NOTHING ELSE."""
-    )
+    context = format_docs(relevant_docs)
+
     llm = HuggingFaceEndpoint(
         huggingfacehub_api_token=token,
         repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
@@ -123,51 +76,24 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         temperature=0.1,
         repetition_penalty=1
     )
-    QUERY_PROMPT = PromptTemplate(
-    input_variables=["question"],
-    template="""You are an AI language model assistant. Your task is to generate five 
-    different versions of the given user question to retrieve relevant documents from a vector 
-    database. By generating multiple perspectives on the user question, your goal is to help
-    the user overcome some of the limitations of the distance-based similarity search. 
-    Provide these alternative questions separated by newlines.
-    Original question: {question}""",
-)
-    output_parser = StrOutputParser()
-    llm_chain = LLMChain(llm=llm, prompt=QUERY_PROMPT, output_parser=output_parser)
-    retriever = MultiQueryRetriever(
-    retriever=re,llm_chain=llm_chain, parser_key="lines"
-)
-    question_generator_chain = LLMChain(llm=llm, prompt=template2)
-    generated_question = question_generator_chain.run({'question': user_query, 'chat_history': chat_history})
-    original_string=generated_question
-    if original_string.startswith("Standalone question: "):
-        original_string = original_string[len("Standalone question: "):]
-    index = original_string.find("Analyze")
-    standalone_question = original_string[:index].strip() if index != -1 else original_string.strip()
-    qu=standalone_question+usq
-    template = TEMPLATE
-    custom_rag_prompt = PromptTemplate.from_template(template)
+
+    template = PromptTemplate.from_template(TEMPLATE)
     rag_chain_from_docs = (
-        RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
-        | custom_rag_prompt
+        RunnablePassthrough()
+        | template
         | llm
         | StrOutputParser()
     )
-    rag_chain_with_source = RunnableParallel(
-        {"context": retriever, "question": RunnablePassthrough()}
-    ).assign(answer=rag_chain_from_docs)
-    llm_response = rag_chain_with_source.invoke(qu)
-    final_output = llm_response['answer']
+
+    llm_response = rag_chain_from_docs.invoke({"context": context, "question": user_query, "chat_history": chat_history})
+    final_output = llm_response
     return final_output
 
 def format_docs(docs):
     formatted_docs = []
     for doc in docs:
         content = doc.page_content
+        page = doc.metadata.get('page') + 1
         source = doc.metadata.get('filename')
-        if doc.metadata.get('page_number') :
-            page = doc.metadata.get('page_number')
-            formatted_docs.append(f"{content} Source: {source} : {page}")
-        else:
-            formatted_docs.append(f"{content} Source: {source}")
+        formatted_docs.append(f"{content} Source: {source} : {page}")
     return "\n\n".join(formatted_docs)

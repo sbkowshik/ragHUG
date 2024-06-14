@@ -92,7 +92,7 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
     splits = text_splitter.split_documents(docs)
 
     vectorstore = Qdrant.from_documents(
-        documents=splits, embedding=embeddings, url=qurl, api_key=qapi, collection_name=sid
+        documents=splits, embedding=embeddings, url=qurl, api_key=qapi, collection_name=f"collection_{sid}"
     )
 
     return vectorstore,splits

@@ -19,3 +19,5 @@ lark
 unstructured
 pymupdf
 pdfminer.six
+unstructured-inference==0.7.27
+unstructured[all-docs]

@@ -54,7 +54,7 @@ def load_doc_text(uploaded_file, upi):
         loader=TextLoader(temp_file_path)
     elif fe=='.pdf':
          loader = PyPDFLoader(temp_file_path)
-    elif fe=='csv':
+    elif fe=='.csv':
         loader=CSVLoader(temp_file_path)
     elif fe=='.xlsx':
         loader=UnstructuredExcelLoader(temp_file_path)

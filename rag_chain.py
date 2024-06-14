@@ -100,7 +100,7 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
 def process_user_input(user_query,usq, vectorstore, token, chat_history,splits):
     re = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
     bm=BM25Retriever.from_documents(splits)
-    bm.k = 2
+    bm.k = 6
     ensemble_retriever = EnsembleRetriever(
     retrievers=[bm, re], weights=[0.5, 0.5]
 )

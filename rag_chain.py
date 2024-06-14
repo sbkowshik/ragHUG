@@ -13,6 +13,7 @@ from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.document_loaders import PDFMinerLoader
 from langchain_community.document_loaders import UnstructuredAPIFileLoader
 from langchain_community.document_loaders import UnstructuredFileLoader
+from pathlib import Path
 
 
 
@@ -29,11 +30,8 @@ Question: {question}
 Answer:"""
 
 def load_doc_text(uploaded_file, upi):
-    if uploaded_file.name.endswith('.pdf'):
-        suffix='.pdf'
-    elif uploaded_file.name.endswith('.txt'):
-        suffix='.txt'
-    with tempfile.NamedTemporaryFile(delete=False,suffix=suffix) as temp_file:
+    fe = Path(uploaded_file.name).suffix[1:]
+    with tempfile.NamedTemporaryFile(delete=False,suffix=fe) as temp_file:
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
         

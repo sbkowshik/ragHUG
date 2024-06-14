@@ -7,6 +7,7 @@ from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_community.llms import HuggingFaceEndpoint
 from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import TextLoader
 from langchain_core.prompts import PromptTemplate
 from langchain.chains import StuffDocumentsChain, LLMChain
 from langchain_community.document_loaders import UnstructuredAPIFileLoader
@@ -41,13 +42,10 @@ def load_doc_text(uploaded_file, upi):
     with tempfile.NamedTemporaryFile(delete=False,suffix=fe) as temp_file:
         shutil.copyfileobj(uploaded_file, temp_file)
         temp_file_path = temp_file.name
-        
-    loader = UnstructuredAPIFileLoader(
-        file_path=temp_file_path,
-        api_key=upi,
-        mode="elements",
-        strategy='fast',
-    )
+    if fe=='.txt':
+        loader=TextLoader(temp_file_path)
+    elif fe=='.pdf':
+         loader = PyPDFLoader(temp_file_path)
     docs = loader.load()
     for doc in docs:
         doc.metadata['filename'] = uploaded_file.name

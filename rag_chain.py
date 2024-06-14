@@ -42,7 +42,6 @@ def load_doc_text(uploaded_file, upi):
         strategy='fast',
     )
     docs = loader.load()
-    print(docs)
     for doc in docs:
         doc.metadata['filename'] = uploaded_file.name
     total_text = "\n".join(doc.page_content for doc in docs)

@@ -56,15 +56,13 @@ def load_doc_text(uploaded_file, upi):
          loader = PyPDFLoader(temp_file_path)
     elif fe=='.csv':
         loader=CSVLoader(temp_file_path)
-    elif fe=='.xlsx':
-        loader=UnstructuredExcelLoader(temp_file_path)
     elif fe=='.json':
         loader = JSONLoader(
         file_path=temp_file_path,
         jq_schema='.messages[].content',
         text_content=False)
-    elif fe=='.html':
-        loader=UnstructuredHTMLLoader(temp_file_path)
+    else:
+        loader=UnstructuredAPIFileLoader(file_path=temp_file_path,api_key=upi,mode='elements')
     docs = loader.load()
     for doc in docs:
         doc.metadata['filename'] = uploaded_file.name
@@ -152,6 +150,9 @@ def format_docs(docs):
         source = doc.metadata.get('filename')
         if doc.metadata.get('page') :
             page = doc.metadata.get('page') + 1
+            formatted_docs.append(f"{content} Source: {source} : {page}")
+        elif doc.metadata.get('page_number'):
+            page = doc.metadata.get('page_number')
             formatted_docs.append(f"{content} Source: {source} : {page}")
         else:
             formatted_docs.append(f"{content} Source: {source}")

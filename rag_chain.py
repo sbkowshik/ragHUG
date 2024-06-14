@@ -34,7 +34,7 @@ def load_doc_text(uploaded_file, upi):
         temp_file_path = temp_file.name
         
     loader = UnstructuredFileLoader(
-        file=temp_file_path,
+        file_path=temp_file_path,
         mode="elements",
         strategy='fast',
     )

@@ -47,7 +47,8 @@ def load_doc_text(uploaded_file, upi):
     if fe=='.txt':
         loader=TextLoader(temp_file_path)
     elif fe=='.pdf':
-         loader = PyPDFLoader(temp_file_path)
+         loader = PyPDFLoader(temp_file_path,extract_images=True)
+    
     docs = loader.load()
     for doc in docs:
         doc.metadata['filename'] = uploaded_file.name

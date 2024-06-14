@@ -97,10 +97,6 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         temperature=0.1,
         repetition_penalty=1
     )
-    compressor = LLMChainExtractor.from_llm(llm)
-    compression_retriever = ContextualCompressionRetriever(
-    base_compressor=compressor, base_retriever=re
-    )
     question_generator_chain = LLMChain(llm=llm, prompt=template2)
     generated_question = question_generator_chain.run({'question': user_query, 'chat_history': chat_history})
     original_string=generated_question
@@ -118,7 +114,7 @@ def process_user_input(user_query,usq, vectorstore, token, chat_history):
         | StrOutputParser()
     )
     rag_chain_with_source = RunnableParallel(
-        {"context": compression_retriever, "question": RunnablePassthrough()}
+        {"context": re, "question": RunnablePassthrough()}
     ).assign(answer=rag_chain_from_docs)
     llm_response = rag_chain_with_source.invoke(qu)
     final_output = llm_response['answer']

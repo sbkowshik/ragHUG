@@ -69,7 +69,7 @@ def chunk_and_store_in_vector_store(docs, chunk_size, chunk_overlap, token, qurl
         api_key=token, model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    text_splitter = RecursiveCharacterTextSplitter(separators=['\n\n', '\n', '.'],chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     splits = text_splitter.split_documents(docs)
 
     vectorstore = Qdrant.from_documents(

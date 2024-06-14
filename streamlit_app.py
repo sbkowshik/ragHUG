@@ -44,7 +44,7 @@ def main():
     user_query = st.chat_input("Ask a question")
     
     if user_query and st.session_state['vectorstore']:
-        usq = ". \t You must mention the file name along with page numbers (only if it exists) of the relevant information only from the METADATA in this format [File Name : Page Number]"
+        usq = ". \t You must mention the file name along with page numbers only if it exists of the relevant information only from the METADATA in this format [File Name : Page Number(Optional)]"
         with st.chat_message("user"):
             st.write(user_query)
         st.session_state['messages'].append({"role": "user", "content": user_query})

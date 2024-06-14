@@ -21,5 +21,4 @@ pymupdf
 pdfminer.six
 unstructured-inference==0.7.27
 unstructured[all-docs]
-libgl1-mesa-glx
 opencv-python-headless==4.5.3.56

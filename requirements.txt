@@ -19,6 +19,3 @@ lark
 unstructured
 pymupdf
 pdfminer.six
-unstructured-inference==0.7.27
-unstructured[all-docs]
-opencv-python-headless==4.5.3.56

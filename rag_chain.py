@@ -41,7 +41,7 @@ Keep the answer as concise as possible.
 
 {context}
 
-Question: {question}
+Question: {question} 
 
 Answer:"""
 
